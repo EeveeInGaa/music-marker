@@ -1,25 +1,25 @@
 # Audio Marker
 
-Audio Marker ist eine minimalistische, vollständig lokale macOS-App zum Abspielen eines
-Audiotitels und zum Setzen beschreibender Marker auf dessen Waveform. Das Projekt wird in klar
-abgegrenzten Stages entwickelt. Aktuell können einzelne lokale Audiodateien geöffnet und über
-eine vereinfachte Waveform wiedergegeben sowie mit farbigen, beschreibenden Markern versehen
-werden.
+Audio Marker is a minimalist, fully local macOS app for playing a single audio track and placing
+descriptive markers on its waveform. Local audio files can currently be opened, displayed as a simplified waveform, played back, and annotated
+with colored, descriptive markers.
 
-Marker können über den Marker-Button an der Wiedergabeposition oder per Rechtsklick direkt auf der
-Waveform angelegt und anschließend am Markerpunkt präzise entlang der Timeline verschoben werden.
-Markerzeiten werden auf Hundertstelsekunden begrenzt. Kurze Markerbezeichnungen bleiben sichtbar;
-bei engen Markern werden sie ober- beziehungsweise unterhalb der Waveform automatisch gestaffelt.
-Die Leertaste schaltet Wiedergabe und Pause um, solange kein Formularfeld oder anderer interaktiver
-Control fokussiert ist. Titel, Marker und die letzte Wiedergabeposition werden automatisch lokal
-gespeichert und beim nächsten App-Start wiederhergestellt.
+Markers can be created at the current playback position with the Marker button or directly at a
+waveform position with a right-click. They can then be moved precisely along the timeline by
+dragging the marker point. Marker times are limited to centiseconds. Short marker labels remain
+visible and are automatically stacked above or below the waveform when nearby labels would overlap.
+Space toggles playback and pause unless a form field or another interactive control is focused.
+Tracks, markers, and the last playback position are stored automatically and restored the next time
+the app starts.
 
-## Voraussetzungen
+It was created with the assistance of an AI Agent to test out some AI approaches and to quickly be able to use the app.
 
-- Node.js 22 oder neuer
-- pnpm 10 oder neuer
-- Rust (stable)
-- die [Tauri-Voraussetzungen für macOS](https://v2.tauri.app/start/prerequisites/)
+## Prerequisites
+
+- Node.js 22 or newer
+- pnpm 10 or newer
+- Rust stable
+- the [Tauri prerequisites for macOS](https://v2.tauri.app/start/prerequisites/)
 
 ## Installation
 
@@ -27,61 +27,58 @@ gespeichert und beim nächsten App-Start wiederhergestellt.
 pnpm install
 ```
 
-## Entwicklung
+## Development
 
-Die native Desktop-App starten:
+Start the native desktop app:
 
 ```sh
 pnpm dev
 ```
 
-Nur das Web-Frontend im Browser starten:
+Start only the web frontend in a browser:
 
 ```sh
 pnpm dev:web
 ```
 
-Der native Dateidialog und der Zugriff auf lokale Audiodateien stehen nur in der mit `pnpm dev`
-gestarteten Tauri-App zur Verfügung.
+The native file picker and access to local audio files are available only in the Tauri app started
+with `pnpm dev`.
 
-## Build und Qualitätschecks
+## Build and Quality Checks
 
 ```sh
-pnpm format:check  # Formatierung prüfen
-pnpm format        # Formatierung anwenden
-pnpm lint          # statische Analyse
-pnpm check         # Formatierung und statische Analyse gemeinsam
-pnpm test          # Domain-Tests mit dem Node-Test-Runner
-pnpm typecheck     # strikter TypeScript-Check
-pnpm build:web     # Frontend bauen
-pnpm build         # native Tauri-App bauen
+pnpm format:check  # check formatting
+pnpm format        # apply formatting
+pnpm lint          # run static analysis
+pnpm check         # check formatting and static analysis together
+pnpm test          # run domain tests with the Node.js test runner
+pnpm typecheck     # run strict TypeScript checks
+pnpm build:web     # build the frontend
+pnpm build         # build the native Tauri app
 ```
 
-Biome ist die zentrale Lösung für Formatierung und statische Analyse. ESLint und Prettier werden
-nicht parallel eingesetzt.
+## Architecture
 
-## Architektur
+- `src/components`: small React UI components
+- `src/domain`: UI-independent, strictly typed track and marker models
+- `src/services`: narrow adapters for native Tauri features such as file selection and persistence
+- `src/styles`: global design tokens and app styling
+- `src-tauri`: lightweight native Tauri shell
 
-- `src/components`: kleine React-UI-Komponenten
-- `src/domain`: UI-unabhängige, strikt typisierte Track- und Marker-Modelle
-- `src/services`: schmale Adapter für native Tauri-Funktionen wie Dateiauswahl und Persistenz
-- `src/styles`: globale Design-Tokens und App-Styling
-- `src-tauri`: schlanke native Tauri-Hülle
+`AudioWaveform` encapsulates the WaveSurfer instance and exposes only a small, typed player
+interface to the rest of the React code. The native dialog returns a local path, after which Tauri
+makes the selected file available through a temporarily authorized asset URL.
 
-`AudioWaveform` kapselt die WaveSurfer-Instanz und stellt dem restlichen React-Code nur eine kleine,
-typisierte Player-Schnittstelle bereit. Der native Dialog liefert den lokalen Pfad; Tauri stellt
-die ausgewählte Datei anschließend über einen temporär freigegebenen Asset-URL bereit.
+Markers belong to a track as domain data. `MarkerLayer` draws them independently of WaveSurfer as a
+thin overlay, while `MarkerEditor` handles editing in a native, non-modal popover. Free waveform
+areas therefore remain available for scrubbing. During a drag, the overlay updates only the visual
+position of the active marker; the exact, bounded time is committed to track state once when the
+pointer is released.
 
-Marker gehören als Domain-Daten zum Track. `MarkerLayer` zeichnet sie unabhängig von WaveSurfer als
-schmales Overlay, während `MarkerEditor` die Bearbeitung in einem nativen, nicht-modalen Popover
-kapselt. Freie Bereiche der Waveform bleiben dadurch für Scrubbing erreichbar. Während eines Drags
-aktualisiert das Overlay nur die Darstellung des aktiven Markers; der Track-State wird erst beim
-Loslassen einmalig mit dem exakten, begrenzten Zeitpunkt aktualisiert.
-
-Der persistierte, versionierte Zustand speichert Tracks in einer ID-basierten Map und merkt sich die
-ID des zuletzt geöffneten Titels. Die Oberfläche verwaltet weiterhin genau einen aktiven Titel und
-zeigt keine Bibliothek. So kann später eine Liste zuletzt verwendeter Titel ergänzt werden, ohne
-Player oder UI auf mehrere gleichzeitig geladene Tracks auszurichten. Beim Start prüft eine schmale
-native Tauri-Funktion den gespeicherten Dateipfad und gibt nur die konkrete Audiodatei erneut für das
-Asset-Protokoll frei. Fehlt sie, bleibt die App bedienbar und bietet eine Neuzuordnung an, bei der
-Marker und Wiedergabeposition erhalten bleiben.
+The versioned persisted state stores tracks in an ID-based map and records the ID of the most
+recently opened track. The interface still manages exactly one active track and does not display a
+library. This allows a recent-tracks list to be added later without adapting the player or UI for
+multiple simultaneously loaded tracks. On startup, a narrow native Tauri function verifies the
+stored file path and authorizes only that specific audio file for the asset protocol. If the file is
+missing, the app remains usable and offers relinking while preserving markers and playback
+position.
