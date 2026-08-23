@@ -81,7 +81,6 @@ const MarkerItem = memo(function MarkerItem({
 }: MarkerItemProps) {
   const { t } = useI18n();
   const markerElementRef = useRef<HTMLDivElement | null>(null);
-  const dragTimeRef = useRef<HTMLOutputElement | null>(null);
   const dragSessionRef = useRef<DragSession | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const cancelDescriptionEditRef = useRef(false);
@@ -109,10 +108,6 @@ const MarkerItem = memo(function MarkerItem({
       "--marker-drag-offset",
       `${dragSession.lastPixel - dragSession.initialPixel}px`,
     );
-
-    if (dragTimeRef.current !== null) {
-      dragTimeRef.current.textContent = formatPrecisePlaybackTime(dragSession.lastTime);
-    }
   };
 
   const scheduleDragPaint = () => {
@@ -329,6 +324,7 @@ const MarkerItem = memo(function MarkerItem({
           label,
           time: formatPrecisePlaybackTime(marker.time),
         })}
+        aria-keyshortcuts="Backspace Delete"
         className="marker-handle"
         onClick={(event) => {
           event.stopPropagation();
@@ -352,9 +348,6 @@ const MarkerItem = memo(function MarkerItem({
         type="button"
       >
         <span className="marker-dot" aria-hidden="true" />
-        <output aria-hidden="true" className="marker-drag-time" ref={dragTimeRef}>
-          {formatPrecisePlaybackTime(marker.time)}
-        </output>
       </button>
       {labelDisplayMode === "show-all" ? (
         <span className="marker-short-label marker-label-autosize">

@@ -721,45 +721,6 @@ body.is-marker-dragging {
   transform: translateX(-50%);
 }
 
-.marker-drag-time {
-  position: absolute;
-  left: 50%;
-  width: max-content;
-  padding: 0.3rem 0.45rem;
-  border: 1px solid color-mix(in oklab, currentColor, transparent 62%);
-  border-radius: 0.45rem;
-  background: var(--surface-solid);
-  box-shadow: 0 0.625rem 1.75rem rgba(20, 20, 18, 0.14);
-  color: var(--text);
-  font-size: 0.6875rem;
-  font-variant-numeric: tabular-nums;
-  font-weight: 620;
-  line-height: 1;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(-50%) scale(0.96);
-  transition:
-    opacity 100ms ease,
-    transform 100ms ease;
-}
-
-.marker-top .marker-drag-time {
-  bottom: calc(100% + 0.25rem);
-}
-
-.marker-bottom .marker-drag-time {
-  top: calc(100% + 0.25rem);
-}
-
-.timeline-marker.is-dragging .marker-short-label {
-  opacity: 0;
-}
-
-.timeline-marker.is-dragging .marker-drag-time {
-  opacity: 1;
-  transform: translateX(-50%) scale(1);
-}
-
 .marker-popover {
   position: fixed;
   inset: auto 1.25rem 3.5rem auto;
@@ -1145,7 +1106,6 @@ body.is-marker-dragging {
   .add-marker-button,
   .marker-dot,
   .marker-short-label,
-  .marker-drag-time,
   .marker-line,
   .marker-popover,
   .color-swatch {

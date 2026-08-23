@@ -55,7 +55,7 @@
   },
   "player": {
     "activeTrack": "Aktiver Titel",
-    "waveformInstructions": "Freie Fläche: spulen · Markerpunkt: verschieben · Rechtsklick: neuer Marker.",
+    "waveformInstructions": "Freie Fläche: spulen · Markerpunkt: verschieben · Ausgewählter Marker: Löschtaste · Rechtsklick: neuer Marker.",
     "loadingWaveform": "Waveform wird geladen · {progress}%",
     "timeDescription": "Wiedergabeposition und Gesamtdauer: ",
     "pause": "Pause",

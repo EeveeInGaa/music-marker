@@ -159,11 +159,14 @@ export function AudioPlayer({
     handleCloseMarkerEditor();
   };
 
-  const handleDeleteMarker = (markerId: string) => {
-    onMarkersChange(track.markers.filter((marker) => marker.id !== markerId));
-    setSelectedMarkerId(null);
-    handleCloseMarkerEditor();
-  };
+  const handleDeleteMarker = useCallback(
+    (markerId: string) => {
+      onMarkersChange(track.markers.filter((marker) => marker.id !== markerId));
+      setSelectedMarkerId(null);
+      handleCloseMarkerEditor();
+    },
+    [handleCloseMarkerEditor, onMarkersChange, track.markers],
+  );
 
   const handleSelectMarker = useCallback((marker: Marker) => {
     setSelectedMarkerId(marker.id);
@@ -199,22 +202,27 @@ export function AudioPlayer({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.code !== "Space" ||
-        event.repeat ||
-        !isReady ||
-        isInteractiveKeyboardTarget(event.target)
-      ) {
+      if (event.repeat || isInteractiveKeyboardTarget(event.target)) {
         return;
       }
 
-      event.preventDefault();
-      void handleTogglePlayback();
+      if (event.key === "Backspace" || event.key === "Delete") {
+        if (selectedMarkerId !== null) {
+          event.preventDefault();
+          handleDeleteMarker(selectedMarkerId);
+        }
+        return;
+      }
+
+      if (event.code === "Space" && isReady) {
+        event.preventDefault();
+        void handleTogglePlayback();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleTogglePlayback, isReady]);
+  }, [handleDeleteMarker, handleTogglePlayback, isReady, selectedMarkerId]);
 
   return (
     <section className="player-card active-player" aria-labelledby="track-title">

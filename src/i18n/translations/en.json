@@ -55,7 +55,7 @@
   },
   "player": {
     "activeTrack": "Active track",
-    "waveformInstructions": "Empty space: seek · Marker point: drag · Right-click: new marker.",
+    "waveformInstructions": "Empty space: seek · Marker point: drag · Selected marker: Delete · Right-click: new marker.",
     "loadingWaveform": "Loading waveform · {progress}%",
     "timeDescription": "Playback position and total duration: ",
     "pause": "Pause",
