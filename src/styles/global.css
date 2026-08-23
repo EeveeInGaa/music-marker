@@ -373,7 +373,8 @@ h1 {
 }
 
 .waveform-figure {
-  display: flow-root;
+  display: flex;
+  flex-direction: column;
   margin: clamp(2rem, 4vw, 2.75rem) 0 0;
 }
 
@@ -398,7 +399,7 @@ h1 {
 
 .waveform-figure figcaption {
   min-height: 1.1rem;
-  margin-top: 0.875rem;
+  margin-block-start: 1.25rem;
   color: var(--text-faint);
   font-size: 0.6875rem;
   line-height: 1.45;
@@ -623,7 +624,7 @@ body.is-marker-dragging {
   margin: 0;
   overflow: hidden;
   padding: 0.25rem 0.4375rem;
-  border: 1px solid color-mix(in oklab, currentColor, transparent 70%);
+  border: 1px solid var(--marker-color);
   border-radius: 0.4375rem;
   appearance: none;
   background: var(--surface-solid);
@@ -700,7 +701,7 @@ body.is-marker-dragging {
 
 .marker-short-label:focus-visible,
 .marker-label-autosize:has(.marker-label-autosize-input:focus-visible) {
-  outline: 0.125rem solid currentColor;
+  outline: 0.125rem solid var(--marker-color);
   outline-offset: 0.125rem;
 }
 
