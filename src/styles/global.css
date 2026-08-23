@@ -302,11 +302,14 @@ h1 {
 }
 
 .waveform-figure {
+  display: flow-root;
   margin: clamp(2rem, 4vw, 2.75rem) 0 0;
 }
 
 .timeline-stage {
   position: relative;
+  margin-block-start: var(--marker-top-stack-space, 0);
+  margin-block-end: var(--marker-bottom-stack-space, 0);
   -webkit-user-select: none;
   user-select: none;
 }
@@ -555,29 +558,29 @@ body.is-marker-dragging {
   font-size: 0.625rem;
   font-weight: 560;
   line-height: 1.2;
-  opacity: 0;
+  opacity: 0.92;
   pointer-events: none;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transform: translateX(-50%) translateY(0.2rem);
+  transform: translateX(-50%);
   transition:
     opacity 120ms ease,
     transform 120ms ease;
 }
 
 .marker-top .marker-short-label {
-  bottom: calc(100% + 0.25rem);
+  bottom: calc(100% + 0.25rem + var(--marker-label-offset, 0px));
 }
 
 .marker-bottom .marker-short-label {
-  top: calc(100% + 0.25rem);
+  top: calc(100% + 0.25rem + var(--marker-label-offset, 0px));
 }
 
 .marker-handle:hover .marker-short-label,
 .marker-handle:focus-visible .marker-short-label,
 .timeline-marker.is-selected .marker-short-label {
   opacity: 1;
-  transform: translateX(-50%) translateY(0);
+  transform: translateX(-50%);
 }
 
 .marker-drag-time {

@@ -3,10 +3,11 @@ import {
   memo,
   type PointerEvent as ReactPointerEvent,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
-import type { Marker } from "../domain/marker";
+import { assignMarkerLabelLanes, type Marker } from "../domain/marker";
 import { clampTime, formatPrecisePlaybackTime, horizontalPositionToTime } from "../domain/time";
 
 interface MarkerLayerProps {
@@ -41,6 +42,8 @@ interface DragSession {
   startClientX: number;
   timelineWidth: number;
 }
+
+const MARKER_LABEL_LANE_HEIGHT = 26;
 
 function getMarkerStyle(marker: Marker, duration: number): MarkerStyle {
   const offset = duration > 0 ? (clampTime(marker.time, duration) / duration) * 100 : 0;
@@ -238,6 +241,7 @@ const MarkerItem = memo(function MarkerItem({
   return (
     <div
       className={`timeline-marker marker-${marker.position}${isSelected ? " is-selected" : ""}${isDragging ? " is-dragging" : ""}`}
+      data-marker-id={marker.id}
       ref={markerElementRef}
       style={getMarkerStyle(marker, duration)}
     >
@@ -286,8 +290,92 @@ export function MarkerLayer({
   onSelect,
   selectedMarkerId,
 }: MarkerLayerProps) {
+  const layerRef = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    const layer = layerRef.current;
+    if (layer === null) {
+      return;
+    }
+
+    const timelineStage = layer.parentElement;
+    if (timelineStage === null) {
+      return;
+    }
+
+    let animationFrame: number | null = null;
+
+    const updateLabelLayout = () => {
+      animationFrame = null;
+      const markerElements = new Map<string, HTMLDivElement>();
+      for (const element of layer.querySelectorAll<HTMLDivElement>(".timeline-marker")) {
+        const markerId = element.dataset.markerId;
+        if (markerId !== undefined) {
+          markerElements.set(markerId, element);
+        }
+      }
+
+      const geometries = markers.map((marker) => ({
+        id: marker.id,
+        position: marker.position,
+        time: marker.time,
+        width:
+          markerElements
+            .get(marker.id)
+            ?.querySelector<HTMLElement>(".marker-short-label")
+            ?.getBoundingClientRect().width ?? 0,
+      }));
+      const lanes = assignMarkerLabelLanes(geometries, duration, layer.clientWidth);
+      let highestTopLane = 0;
+      let highestBottomLane = 0;
+      let hasBottomMarkers = false;
+
+      for (const marker of markers) {
+        const lane = lanes[marker.id] ?? 0;
+        markerElements
+          .get(marker.id)
+          ?.style.setProperty("--marker-label-offset", `${lane * MARKER_LABEL_LANE_HEIGHT}px`);
+
+        if (marker.position === "top") {
+          highestTopLane = Math.max(highestTopLane, lane);
+        } else {
+          hasBottomMarkers = true;
+          highestBottomLane = Math.max(highestBottomLane, lane);
+        }
+      }
+
+      timelineStage.style.setProperty(
+        "--marker-top-stack-space",
+        `${highestTopLane * MARKER_LABEL_LANE_HEIGHT}px`,
+      );
+      timelineStage.style.setProperty(
+        "--marker-bottom-stack-space",
+        hasBottomMarkers ? `${(highestBottomLane + 1) * MARKER_LABEL_LANE_HEIGHT}px` : "0px",
+      );
+    };
+
+    const scheduleLabelLayout = () => {
+      if (animationFrame === null) {
+        animationFrame = requestAnimationFrame(updateLabelLayout);
+      }
+    };
+
+    updateLabelLayout();
+    const resizeObserver = new ResizeObserver(scheduleLabelLayout);
+    resizeObserver.observe(layer);
+
+    return () => {
+      resizeObserver.disconnect();
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame);
+      }
+      timelineStage.style.removeProperty("--marker-top-stack-space");
+      timelineStage.style.removeProperty("--marker-bottom-stack-space");
+    };
+  }, [duration, markers]);
+
   return (
-    <div className="marker-layer">
+    <div className="marker-layer" ref={layerRef}>
       {markers.map((marker) => (
         <MarkerItem
           duration={duration}

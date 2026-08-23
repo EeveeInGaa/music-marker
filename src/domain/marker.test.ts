@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import type { Marker } from "./marker.ts";
-import { moveMarker, sortMarkers } from "./marker.ts";
+import type { Marker, MarkerLabelGeometry } from "./marker.ts";
+import { assignMarkerLabelLanes, moveMarker, sortMarkers } from "./marker.ts";
 
 const createMarker = (id: string, time: number): Marker => ({
   color: "#4f7dd9",
@@ -52,5 +52,39 @@ describe("moveMarker", () => {
     const markers = [createMarker("known", 5)];
 
     assert.deepEqual(moveMarker(markers, "missing", 8), markers);
+  });
+});
+
+describe("assignMarkerLabelLanes", () => {
+  const createLabel = (
+    id: string,
+    time: number,
+    position: MarkerLabelGeometry["position"] = "top",
+  ): MarkerLabelGeometry => ({ id, position, time, width: 80 });
+
+  test("staffelt überlappende Labels und verwendet freie Ebenen erneut", () => {
+    const lanes = assignMarkerLabelLanes(
+      [createLabel("first", 10), createLabel("overlapping", 15), createLabel("distant", 30)],
+      100,
+      1000,
+    );
+
+    assert.deepEqual(lanes, { distant: 0, first: 0, overlapping: 1 });
+  });
+
+  test("berechnet obere und untere Marker unabhängig", () => {
+    const lanes = assignMarkerLabelLanes(
+      [createLabel("top", 10), createLabel("bottom", 10, "bottom")],
+      100,
+      1000,
+    );
+
+    assert.deepEqual(lanes, { bottom: 0, top: 0 });
+  });
+
+  test("fällt bei einer ungültigen Timeline sicher auf die Grundebene zurück", () => {
+    assert.deepEqual(assignMarkerLabelLanes([createLabel("marker", 10)], 0, 1000), {
+      marker: 0,
+    });
   });
 });
