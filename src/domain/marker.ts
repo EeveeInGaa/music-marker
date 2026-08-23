@@ -20,6 +20,11 @@ export interface MarkerLabelGeometry {
   width: number;
 }
 
+export interface MarkerLabelLaneLayout {
+  offsets: number[];
+  totalHeight: number;
+}
+
 export const MARKER_COLORS: readonly MarkerColor[] = [
   { name: "blue", value: "#4f7dd9" },
   { name: "teal", value: "#2d988b" },
@@ -94,4 +99,28 @@ export function assignMarkerLabelLanes(
   }
 
   return lanesByMarkerId;
+}
+
+export function calculateMarkerLabelLaneLayout(
+  heights: readonly number[],
+  defaultHeight: number,
+  gap: number,
+): MarkerLabelLaneLayout {
+  const safeDefaultHeight = Number.isFinite(defaultHeight) ? Math.max(defaultHeight, 0) : 0;
+  const safeGap = Number.isFinite(gap) ? Math.max(gap, 0) : 0;
+  const offsets: number[] = [];
+  let totalHeight = 0;
+
+  for (let lane = 0; lane < heights.length; lane += 1) {
+    offsets[lane] = totalHeight;
+    const height = heights[lane];
+    totalHeight +=
+      (height !== undefined && Number.isFinite(height) ? Math.max(height, 0) : safeDefaultHeight) +
+      safeGap;
+  }
+
+  return {
+    offsets,
+    totalHeight: Math.max(totalHeight - safeGap, 0),
+  };
 }

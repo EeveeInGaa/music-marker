@@ -3,6 +3,7 @@ import { describe, test } from "node:test";
 import type { Marker, MarkerLabelGeometry } from "./marker.ts";
 import {
   assignMarkerLabelLanes,
+  calculateMarkerLabelLaneLayout,
   moveMarker,
   sortMarkers,
   updateMarkerDescription,
@@ -106,6 +107,25 @@ describe("assignMarkerLabelLanes", () => {
   test("fällt bei einer ungültigen Timeline sicher auf die Grundebene zurück", () => {
     assert.deepEqual(assignMarkerLabelLanes([createLabel("marker", 10)], 0, 1000), {
       marker: 0,
+    });
+  });
+});
+
+describe("calculateMarkerLabelLaneLayout", () => {
+  test("staffelt Ebenen anhand ihrer tatsächlichen Höhen", () => {
+    assert.deepEqual(calculateMarkerLabelLaneLayout([22, 40, 18], 22, 4), {
+      offsets: [0, 26, 70],
+      totalHeight: 88,
+    });
+  });
+
+  test("verwendet für nicht messbare Ebenen eine sichere Standardhöhe", () => {
+    const heights: number[] = [];
+    heights.length = 2;
+
+    assert.deepEqual(calculateMarkerLabelLaneLayout(heights, 22, 4), {
+      offsets: [0, 26],
+      totalHeight: 48,
     });
   });
 });

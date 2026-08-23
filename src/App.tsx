@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppShell } from "./components/AppShell";
 import { AudioPlayer } from "./components/AudioPlayer";
 import { EmptyPlayer } from "./components/EmptyPlayer";
+import type { MarkerLabelDisplayMode } from "./components/MarkerLabelDisplaySwitcher";
 import {
   createEmptyLibrary,
   findTrackBySourcePath,
@@ -30,6 +31,18 @@ interface LocalizedError {
   values?: Readonly<Record<string, string>>;
 }
 
+const MARKER_LABEL_DISPLAY_MODE_KEY = "audio-marker-label-display-mode";
+
+function getInitialMarkerLabelDisplayMode(): MarkerLabelDisplayMode {
+  try {
+    return window.localStorage.getItem(MARKER_LABEL_DISPLAY_MODE_KEY) === "show-all"
+      ? "show-all"
+      : "truncate";
+  } catch {
+    return "truncate";
+  }
+}
+
 function toLocalizedError(
   error: unknown,
   fallbackKey: TranslationKey,
@@ -49,6 +62,9 @@ export function App() {
   const [isSelectingFile, setIsSelectingFile] = useState(false);
   const [operationError, setOperationError] = useState<LocalizedError | null>(null);
   const [persistenceError, setPersistenceError] = useState<LocalizedError | null>(null);
+  const [markerLabelDisplayMode, setMarkerLabelDisplayMode] = useState<MarkerLabelDisplayMode>(
+    getInitialMarkerLabelDisplayMode,
+  );
 
   const commitLibrary = useCallback((nextLibrary: TrackLibrary) => {
     libraryRef.current = nextLibrary;
@@ -127,6 +143,14 @@ export function App() {
       isCurrent = false;
     };
   }, [library, restoreStatus]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(MARKER_LABEL_DISPLAY_MODE_KEY, markerLabelDisplayMode);
+    } catch {
+      // The display mode still changes for this session if storage is unavailable.
+    }
+  }, [markerLabelDisplayMode]);
 
   const handleOpenFile = useCallback(async () => {
     setIsSelectingFile(true);
@@ -274,12 +298,15 @@ export function App() {
     <AppShell
       errorMessage={visibleError === null ? null : t(visibleError.key, visibleError.values)}
       isSelectingFile={isBusy}
+      markerLabelDisplayMode={markerLabelDisplayMode}
+      onMarkerLabelDisplayModeChange={setMarkerLabelDisplayMode}
       onOpenFile={() => void handleOpenFile()}
       statusMessage={statusMessage}
     >
       {activeSession !== null && activeTrack !== null ? (
         <AudioPlayer
           key={activeTrack.id}
+          markerLabelDisplayMode={markerLabelDisplayMode}
           onMarkersChange={handleMarkersChange}
           onPlaybackPositionChange={handlePlaybackPositionChange}
           sourceUrl={activeSession.sourceUrl}

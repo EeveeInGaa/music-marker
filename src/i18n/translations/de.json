@@ -6,6 +6,11 @@
     "german": "Deutsch",
     "germanShort": "DE"
   },
+  "markerLabelDisplay": {
+    "switcherLabel": "Darstellung der Markerbeschriftungen",
+    "truncate": "Lange Markerbeschriftungen kürzen",
+    "showAll": "Markerbeschriftungen vollständig und mehrzeilig anzeigen"
+  },
   "header": {
     "openAudio": "Audio öffnen",
     "opening": "Wird geöffnet…"

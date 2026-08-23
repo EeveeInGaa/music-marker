@@ -17,9 +17,11 @@ import { type Translator, useI18n } from "../i18n/i18n";
 import { AudioWaveform, type AudioWaveformHandle } from "./AudioWaveform";
 import { PauseIcon, PlayIcon } from "./icons";
 import { MarkerEditor, type MarkerEditorMode } from "./MarkerEditor";
+import type { MarkerLabelDisplayMode } from "./MarkerLabelDisplaySwitcher";
 import { MarkerLayer } from "./MarkerLayer";
 
 interface AudioPlayerProps {
+  markerLabelDisplayMode: MarkerLabelDisplayMode;
   onMarkersChange: (markers: Marker[]) => void;
   onPlaybackPositionChange: (time: number) => void;
   sourceUrl: string;
@@ -46,6 +48,7 @@ function isInteractiveKeyboardTarget(target: EventTarget | null): boolean {
 }
 
 export function AudioPlayer({
+  markerLabelDisplayMode,
   onMarkersChange,
   onPlaybackPositionChange,
   sourceUrl,
@@ -235,6 +238,7 @@ export function AudioPlayer({
           {isReady ? (
             <MarkerLayer
               duration={duration}
+              labelDisplayMode={markerLabelDisplayMode}
               markers={track.markers}
               onDescriptionChange={handleMarkerDescriptionChange}
               onDragStart={handleMarkerDragStart}

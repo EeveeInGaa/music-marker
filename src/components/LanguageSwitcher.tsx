@@ -6,7 +6,7 @@ export function LanguageSwitcher() {
   const { language, setLanguage, t } = useI18n();
 
   return (
-    <fieldset className="language-switcher">
+    <fieldset className="compact-switcher language-switcher">
       <legend className="visually-hidden">{t("language.switcherLabel")}</legend>
       {languageOptions.map((option) => {
         const isEnglish = option === "en";

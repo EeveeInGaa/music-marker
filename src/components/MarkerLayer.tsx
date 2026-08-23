@@ -1,18 +1,28 @@
 import {
   type CSSProperties,
   memo,
+  type ChangeEvent as ReactChangeEvent,
+  type FocusEvent as ReactFocusEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
-import { assignMarkerLabelLanes, type Marker } from "../domain/marker";
+import {
+  assignMarkerLabelLanes,
+  calculateMarkerLabelLaneLayout,
+  type Marker,
+} from "../domain/marker";
 import { clampTime, formatPrecisePlaybackTime, horizontalPositionToTime } from "../domain/time";
 import { useI18n } from "../i18n/i18n";
+import type { MarkerLabelDisplayMode } from "./MarkerLabelDisplaySwitcher";
 
 interface MarkerLayerProps {
   duration: number;
+  labelDisplayMode: MarkerLabelDisplayMode;
   markers: readonly Marker[];
   onDescriptionChange: (markerId: string, description: string) => void;
   onDragStart: (markerId: string) => void;
@@ -24,6 +34,7 @@ interface MarkerLayerProps {
 interface MarkerItemProps {
   duration: number;
   isSelected: boolean;
+  labelDisplayMode: MarkerLabelDisplayMode;
   marker: Marker;
   onDescriptionChange: (markerId: string, description: string) => void;
   onDragStart: (markerId: string) => void;
@@ -46,7 +57,8 @@ interface DragSession {
   timelineWidth: number;
 }
 
-const MARKER_LABEL_LANE_HEIGHT = 26;
+const MARKER_LABEL_BASE_HEIGHT = 22;
+const MARKER_LABEL_LANE_GAP = 4;
 
 function getMarkerStyle(marker: Marker, duration: number): MarkerStyle {
   const offset = duration > 0 ? (clampTime(marker.time, duration) / duration) * 100 : 0;
@@ -60,6 +72,7 @@ function getMarkerStyle(marker: Marker, duration: number): MarkerStyle {
 const MarkerItem = memo(function MarkerItem({
   duration,
   isSelected,
+  labelDisplayMode,
   marker,
   onDescriptionChange,
   onDragStart,
@@ -78,6 +91,7 @@ const MarkerItem = memo(function MarkerItem({
   const [isDragging, setIsDragging] = useState(false);
   const description = draftDescription.trim();
   const label = description.length > 0 ? description : t("marker.defaultLabel");
+  const labelSizeText = draftDescription.length > 0 ? draftDescription : t("marker.defaultLabel");
 
   useEffect(() => {
     setDraftDescription(marker.description);
@@ -255,6 +269,53 @@ const MarkerItem = memo(function MarkerItem({
     finishDrag(false);
   };
 
+  const handleDescriptionBlur = (
+    event: ReactFocusEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    if (cancelDescriptionEditRef.current) {
+      cancelDescriptionEditRef.current = false;
+      setDraftDescription(marker.description);
+      return;
+    }
+
+    if (event.currentTarget.value !== marker.description) {
+      onDescriptionChange(marker.id, event.currentTarget.value);
+    }
+  };
+
+  const handleDescriptionKeyDown = (
+    event: ReactKeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    event.stopPropagation();
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.currentTarget.blur();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      cancelDescriptionEditRef.current = true;
+      event.currentTarget.blur();
+    }
+  };
+
+  const descriptionFieldProps = {
+    "aria-label": t("marker.editDescription", {
+      time: formatPrecisePlaybackTime(marker.time),
+    }),
+    enterKeyHint: "done" as const,
+    maxLength: 500,
+    onBlur: handleDescriptionBlur,
+    onChange: (event: ReactChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setDraftDescription(event.currentTarget.value),
+    onClick: (event: ReactMouseEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      event.stopPropagation(),
+    onKeyDown: handleDescriptionKeyDown,
+    onPointerDown: (event: ReactPointerEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      event.stopPropagation(),
+    placeholder: t("marker.defaultLabel"),
+    spellCheck: true,
+    value: draftDescription,
+  };
+
   return (
     <div
       className={`timeline-marker marker-${marker.position}${isSelected ? " is-selected" : ""}${isDragging ? " is-dragging" : ""}`}
@@ -295,47 +356,28 @@ const MarkerItem = memo(function MarkerItem({
           {formatPrecisePlaybackTime(marker.time)}
         </output>
       </button>
-      <input
-        aria-label={t("marker.editDescription", {
-          time: formatPrecisePlaybackTime(marker.time),
-        })}
-        className="marker-short-label"
-        maxLength={500}
-        onBlur={(event) => {
-          if (cancelDescriptionEditRef.current) {
-            cancelDescriptionEditRef.current = false;
-            setDraftDescription(marker.description);
-            return;
-          }
-
-          if (event.currentTarget.value !== marker.description) {
-            onDescriptionChange(marker.id, event.currentTarget.value);
-          }
-        }}
-        onChange={(event) => setDraftDescription(event.currentTarget.value)}
-        onClick={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          event.stopPropagation();
-          if (event.key === "Enter") {
-            event.preventDefault();
-            event.currentTarget.blur();
-          } else if (event.key === "Escape") {
-            event.preventDefault();
-            cancelDescriptionEditRef.current = true;
-            event.currentTarget.blur();
-          }
-        }}
-        onPointerDown={(event) => event.stopPropagation()}
-        placeholder={t("marker.defaultLabel")}
-        type="text"
-        value={draftDescription}
-      />
+      {labelDisplayMode === "show-all" ? (
+        <span className="marker-short-label marker-label-autosize">
+          <span aria-hidden="true" className="marker-label-size-mirror">
+            {labelSizeText}​
+          </span>
+          <textarea
+            {...descriptionFieldProps}
+            className="marker-label-autosize-input"
+            rows={1}
+            wrap="soft"
+          />
+        </span>
+      ) : (
+        <input {...descriptionFieldProps} className="marker-short-label" type="text" />
+      )}
     </div>
   );
 });
 
 export function MarkerLayer({
   duration,
+  labelDisplayMode,
   markers,
   onDescriptionChange,
   onDragStart,
@@ -350,6 +392,7 @@ export function MarkerLayer({
     if (layer === null) {
       return;
     }
+    layer.dataset.labelDisplay = labelDisplayMode;
 
     const timelineStage = layer.parentElement;
     if (timelineStage === null) {
@@ -368,42 +411,67 @@ export function MarkerLayer({
         }
       }
 
-      const geometries = markers.map((marker) => ({
-        id: marker.id,
-        position: marker.position,
-        time: marker.time,
-        width:
-          markerElements
-            .get(marker.id)
-            ?.querySelector<HTMLElement>(".marker-short-label")
-            ?.getBoundingClientRect().width ?? 0,
-      }));
+      const labelBounds = new Map<string, DOMRect>();
+      const geometries = markers.map((marker) => {
+        const bounds = markerElements
+          .get(marker.id)
+          ?.querySelector<HTMLElement>(".marker-short-label")
+          ?.getBoundingClientRect();
+        if (bounds !== undefined) {
+          labelBounds.set(marker.id, bounds);
+        }
+
+        return {
+          id: marker.id,
+          position: marker.position,
+          time: marker.time,
+          width: bounds?.width ?? 0,
+        };
+      });
       const lanes = assignMarkerLabelLanes(geometries, duration, layer.clientWidth);
-      let highestTopLane = 0;
-      let highestBottomLane = 0;
-      let hasBottomMarkers = false;
+      const laneHeights: Record<Marker["position"], number[]> = { bottom: [], top: [] };
+
+      for (const marker of markers) {
+        const lane = lanes[marker.id] ?? 0;
+        const height = labelBounds.get(marker.id)?.height ?? MARKER_LABEL_BASE_HEIGHT;
+        laneHeights[marker.position][lane] = Math.max(
+          laneHeights[marker.position][lane] ?? 0,
+          height,
+        );
+      }
+
+      const layouts = {
+        bottom: calculateMarkerLabelLaneLayout(
+          laneHeights.bottom,
+          MARKER_LABEL_BASE_HEIGHT,
+          MARKER_LABEL_LANE_GAP,
+        ),
+        top: calculateMarkerLabelLaneLayout(
+          laneHeights.top,
+          MARKER_LABEL_BASE_HEIGHT,
+          MARKER_LABEL_LANE_GAP,
+        ),
+      };
 
       for (const marker of markers) {
         const lane = lanes[marker.id] ?? 0;
         markerElements
           .get(marker.id)
-          ?.style.setProperty("--marker-label-offset", `${lane * MARKER_LABEL_LANE_HEIGHT}px`);
-
-        if (marker.position === "top") {
-          highestTopLane = Math.max(highestTopLane, lane);
-        } else {
-          hasBottomMarkers = true;
-          highestBottomLane = Math.max(highestBottomLane, lane);
-        }
+          ?.style.setProperty(
+            "--marker-label-offset",
+            `${layouts[marker.position].offsets[lane] ?? 0}px`,
+          );
       }
 
       timelineStage.style.setProperty(
         "--marker-top-stack-space",
-        `${highestTopLane * MARKER_LABEL_LANE_HEIGHT}px`,
+        `${Math.max(layouts.top.totalHeight - MARKER_LABEL_BASE_HEIGHT, 0)}px`,
       );
       timelineStage.style.setProperty(
         "--marker-bottom-stack-space",
-        hasBottomMarkers ? `${(highestBottomLane + 1) * MARKER_LABEL_LANE_HEIGHT}px` : "0px",
+        layouts.bottom.totalHeight > 0
+          ? `${layouts.bottom.totalHeight + MARKER_LABEL_LANE_GAP}px`
+          : "0px",
       );
     };
 
@@ -428,15 +496,16 @@ export function MarkerLayer({
       timelineStage.style.removeProperty("--marker-top-stack-space");
       timelineStage.style.removeProperty("--marker-bottom-stack-space");
     };
-  }, [duration, markers]);
+  }, [duration, labelDisplayMode, markers]);
 
   return (
-    <div className="marker-layer" ref={layerRef}>
+    <div className="marker-layer" data-label-display={labelDisplayMode} ref={layerRef}>
       {markers.map((marker) => (
         <MarkerItem
           duration={duration}
           isSelected={selectedMarkerId === marker.id}
           key={marker.id}
+          labelDisplayMode={labelDisplayMode}
           marker={marker}
           onDescriptionChange={onDescriptionChange}
           onDragStart={onDragStart}

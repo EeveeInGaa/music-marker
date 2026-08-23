@@ -2,11 +2,17 @@ import type { ReactNode } from "react";
 import { useI18n } from "../i18n/i18n";
 import { FolderIcon } from "./icons";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import {
+  type MarkerLabelDisplayMode,
+  MarkerLabelDisplaySwitcher,
+} from "./MarkerLabelDisplaySwitcher";
 
 interface AppShellProps {
   children: ReactNode;
   errorMessage: string | null;
   isSelectingFile: boolean;
+  markerLabelDisplayMode: MarkerLabelDisplayMode;
+  onMarkerLabelDisplayModeChange: (mode: MarkerLabelDisplayMode) => void;
   onOpenFile: () => void;
   statusMessage: string;
 }
@@ -15,6 +21,8 @@ export function AppShell({
   children,
   errorMessage,
   isSelectingFile,
+  markerLabelDisplayMode,
+  onMarkerLabelDisplayModeChange,
   onOpenFile,
   statusMessage,
 }: AppShellProps) {
@@ -25,6 +33,10 @@ export function AppShell({
       <header className="titlebar">
         <p className="app-name">Audio Marker</p>
         <div className="titlebar-actions">
+          <MarkerLabelDisplaySwitcher
+            mode={markerLabelDisplayMode}
+            onChange={onMarkerLabelDisplayModeChange}
+          />
           <LanguageSwitcher />
           <button
             className="open-button open-button-compact"

@@ -6,6 +6,11 @@
     "german": "German",
     "germanShort": "DE"
   },
+  "markerLabelDisplay": {
+    "switcherLabel": "Marker label display",
+    "truncate": "Truncate long marker labels",
+    "showAll": "Show complete marker labels across multiple lines"
+  },
   "header": {
     "openAudio": "Open audio",
     "opening": "Opening…"

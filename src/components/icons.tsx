@@ -25,3 +25,19 @@ export function PlayIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function TruncatedLinesIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} focusable="false" viewBox="0 0 20 20">
+      <path d="M3.5 4.75h13v1.5h-13zM3.5 8.75h8v1.5h-8zM13 8.75h1.5v1.5H13zM16 8.75h1.5v1.5H16zM3.5 12.75h5v1.5h-5z" />
+    </svg>
+  );
+}
+
+export function WrappedLinesIcon({ className }: IconProps) {
+  return (
+    <svg aria-hidden="true" className={className} focusable="false" viewBox="0 0 20 20">
+      <path d="M3.5 4.75h13v1.5h-13zM3.5 8.75h10v1.5h-10zM3.5 12.75h7v1.5h-7z" />
+    </svg>
+  );
+}

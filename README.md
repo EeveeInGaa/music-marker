@@ -9,9 +9,10 @@ waveform position with a right-click. They can then be moved precisely along the
 dragging the marker point. Marker times are limited to centiseconds. Short marker labels remain
 visible, can be edited directly by clicking them, and are automatically stacked above or below the
 waveform when nearby labels would overlap. Enter or moving focus away saves an inline edit; Escape
-discards it. Space toggles playback and pause unless a form field or another interactive control is
-focused. Tracks, markers, and the last playback position are stored automatically and restored the
-next time the app starts.
+discards it. A compact title-bar switch controls whether long labels are truncated to one line or
+shown completely across multiple lines. This display preference is stored locally. Space toggles
+playback and pause unless a form field or another interactive control is focused. Tracks, markers,
+and the last playback position are stored automatically and restored the next time the app starts.
 
 The complete interface is available in English and German. English is the default language, and a
 compact switch in the title bar changes the language immediately. The selected language is stored
