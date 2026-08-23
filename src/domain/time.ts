@@ -6,6 +6,24 @@ export function clampTime(time: number, duration: number): number {
   return Math.min(Math.max(time, 0), duration);
 }
 
+export function roundTimeToCentiseconds(time: number): number {
+  if (!Number.isFinite(time) || time <= 0) {
+    return 0;
+  }
+
+  return Math.round((time + Number.EPSILON) * 100) / 100;
+}
+
+export function clampTimeToCentiseconds(time: number, duration: number): number {
+  if (!Number.isFinite(duration) || duration <= 0) {
+    return 0;
+  }
+
+  const roundedTime = roundTimeToCentiseconds(clampTime(time, duration));
+  const maximumCentisecond = Math.floor((duration + Number.EPSILON) * 100) / 100;
+  return Math.min(roundedTime, maximumCentisecond);
+}
+
 export function horizontalPositionToTime(
   horizontalPosition: number,
   timelineWidth: number,

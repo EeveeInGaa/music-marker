@@ -4,7 +4,6 @@ import { clampTime, horizontalPositionToTime } from "../domain/time";
 
 export interface AudioWaveformHandle {
   getCurrentTime: () => number;
-  seekBy: (seconds: number) => void;
   seekTo: (time: number) => void;
   togglePlayback: () => Promise<void>;
 }
@@ -49,18 +48,6 @@ export const AudioWaveform = forwardRef<AudioWaveformHandle, AudioWaveformProps>
       ref,
       () => ({
         getCurrentTime: () => waveSurferRef.current?.getCurrentTime() ?? 0,
-        seekBy: (seconds) => {
-          const waveSurfer = waveSurferRef.current;
-          if (waveSurfer === null) {
-            return;
-          }
-
-          const nextTime = clampTime(
-            waveSurfer.getCurrentTime() + seconds,
-            waveSurfer.getDuration(),
-          );
-          waveSurfer.setTime(nextTime);
-        },
         seekTo: (time) => {
           const waveSurfer = waveSurferRef.current;
           if (waveSurfer === null) {
@@ -110,6 +97,8 @@ export const AudioWaveform = forwardRef<AudioWaveformHandle, AudioWaveformProps>
         onRequestMarkerAtTime(markerTime);
       };
 
+      let secondaryPointerId: number | null = null;
+
       const handleSecondaryPointerDown = (event: PointerEvent) => {
         const isSecondaryClick = event.button === 2 || (event.button === 0 && event.ctrlKey);
         if (!isSecondaryClick) {
@@ -117,12 +106,39 @@ export const AudioWaveform = forwardRef<AudioWaveformHandle, AudioWaveformProps>
         }
 
         event.preventDefault();
+        event.stopPropagation();
+        secondaryPointerId = event.pointerId;
+        container.setPointerCapture(event.pointerId);
+      };
+
+      const handleContextMenu = (event: MouseEvent) => {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+
+      const handleSecondaryPointerUp = (event: PointerEvent) => {
+        if (event.pointerId !== secondaryPointerId) {
+          return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+        secondaryPointerId = null;
+        if (container.hasPointerCapture(event.pointerId)) {
+          container.releasePointerCapture(event.pointerId);
+        }
         requestMarkerAtHorizontalPosition(event.clientX);
       };
 
-      const handleContextMenu = (event: MouseEvent) => event.preventDefault();
+      const handleSecondaryPointerCancel = (event: PointerEvent) => {
+        if (event.pointerId === secondaryPointerId) {
+          secondaryPointerId = null;
+        }
+      };
 
       container.addEventListener("pointerdown", handleSecondaryPointerDown, true);
+      container.addEventListener("pointerup", handleSecondaryPointerUp, true);
+      container.addEventListener("pointercancel", handleSecondaryPointerCancel, true);
       container.addEventListener("contextmenu", handleContextMenu);
 
       waveSurfer.on("loading", onLoadingChange);
@@ -141,6 +157,8 @@ export const AudioWaveform = forwardRef<AudioWaveformHandle, AudioWaveformProps>
 
       return () => {
         container.removeEventListener("pointerdown", handleSecondaryPointerDown, true);
+        container.removeEventListener("pointerup", handleSecondaryPointerUp, true);
+        container.removeEventListener("pointercancel", handleSecondaryPointerCancel, true);
         container.removeEventListener("contextmenu", handleContextMenu);
         colorScheme.removeEventListener("change", updateColors);
         waveSurfer.destroy();

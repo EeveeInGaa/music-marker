@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DEFAULT_MARKER_COLOR, type Marker, moveMarker, sortMarkers } from "../domain/marker";
-import { clampTime, formatPlaybackTime } from "../domain/time";
+import {
+  clampTime,
+  clampTimeToCentiseconds,
+  formatPlaybackTime,
+  roundTimeToCentiseconds,
+} from "../domain/time";
 import type { Track } from "../domain/track";
 import { AudioWaveform, type AudioWaveformHandle } from "./AudioWaveform";
 import { PauseIcon, PlayIcon } from "./icons";
@@ -117,7 +122,7 @@ export function AudioPlayer({
         description: "",
         id: crypto.randomUUID(),
         position: "top",
-        time,
+        time: roundTimeToCentiseconds(time),
       },
       mode: "create",
     });
@@ -129,15 +134,19 @@ export function AudioPlayer({
   };
 
   const handleSaveMarker = (marker: Marker) => {
+    const normalizedMarker = {
+      ...marker,
+      time: clampTimeToCentiseconds(marker.time, duration),
+    };
     const nextMarkers =
       markerEditor?.mode === "edit"
         ? track.markers.map((currentMarker) =>
-            currentMarker.id === marker.id ? marker : currentMarker,
+            currentMarker.id === normalizedMarker.id ? normalizedMarker : currentMarker,
           )
-        : [...track.markers, marker];
+        : [...track.markers, normalizedMarker];
 
     onMarkersChange(sortMarkers(nextMarkers));
-    setSelectedMarkerId(marker.id);
+    setSelectedMarkerId(normalizedMarker.id);
     handleCloseMarkerEditor();
   };
 
@@ -159,7 +168,7 @@ export function AudioPlayer({
 
   const handleMarkerMove = useCallback(
     (markerId: string, time: number) => {
-      onMarkersChange(moveMarker(track.markers, markerId, clampTime(time, duration)));
+      onMarkersChange(moveMarker(track.markers, markerId, clampTimeToCentiseconds(time, duration)));
     },
     [duration, onMarkersChange, track.markers],
   );
@@ -242,38 +251,17 @@ export function AudioPlayer({
       </p>
 
       <div className="player-controls">
-        <fieldset className="transport">
-          <legend className="visually-hidden">Wiedergabesteuerung</legend>
-          <button
-            className="skip-button"
-            disabled={!isReady}
-            onClick={() => waveformRef.current?.seekBy(-5)}
-            type="button"
-          >
-            <span aria-hidden="true">−5</span>
-            <span className="visually-hidden">5 Sekunden zurück</span>
-          </button>
-          <button
-            aria-label={isPlaying ? "Pause" : "Wiedergabe"}
-            aria-pressed={isPlaying}
-            aria-keyshortcuts="Space"
-            className="play-button"
-            disabled={!isReady}
-            onClick={() => void handleTogglePlayback()}
-            type="button"
-          >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </button>
-          <button
-            className="skip-button"
-            disabled={!isReady}
-            onClick={() => waveformRef.current?.seekBy(5)}
-            type="button"
-          >
-            <span aria-hidden="true">+5</span>
-            <span className="visually-hidden">5 Sekunden vor</span>
-          </button>
-        </fieldset>
+        <button
+          aria-label={isPlaying ? "Pause" : "Wiedergabe"}
+          aria-pressed={isPlaying}
+          aria-keyshortcuts="Space"
+          className="play-button"
+          disabled={!isReady}
+          onClick={() => void handleTogglePlayback()}
+          type="button"
+        >
+          {isPlaying ? <PauseIcon /> : <PlayIcon />}
+        </button>
         <span className="control-divider" aria-hidden="true" />
         <button
           className="add-marker-button"

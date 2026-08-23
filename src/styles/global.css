@@ -307,6 +307,8 @@ h1 {
 
 .timeline-stage {
   position: relative;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .waveform {
@@ -343,16 +345,6 @@ h1 {
   letter-spacing: 0.025em;
 }
 
-.transport {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-inline: 0;
-  padding: 0;
-  border: 0;
-  gap: 1rem;
-}
-
 .player-controls {
   display: flex;
   align-items: center;
@@ -367,14 +359,15 @@ h1 {
   background: var(--line);
 }
 
-.transport button {
+.play-button {
   display: grid;
   min-inline-size: 2.75rem;
   min-block-size: 2.75rem;
   padding: 0;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-muted);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--button-surface);
+  color: var(--text);
   place-items: center;
   cursor: default;
   transition:
@@ -383,31 +376,17 @@ h1 {
     transform 150ms ease;
 }
 
-.transport button:hover:not(:disabled) {
-  background: var(--button-surface);
-  color: var(--text);
+.play-button:hover:not(:disabled) {
+  background: var(--button-hover);
 }
 
-.transport button:active:not(:disabled) {
+.play-button:active:not(:disabled) {
   transform: scale(0.94);
 }
 
-.transport button:disabled {
+.play-button:disabled {
   color: var(--text-faint);
   opacity: 0.48;
-}
-
-.skip-button {
-  border-radius: 0.75rem;
-  font-size: 0.75rem;
-  font-variant-numeric: tabular-nums;
-}
-
-.transport .play-button {
-  border-color: var(--line);
-  border-radius: 50%;
-  background: var(--button-surface);
-  color: var(--text);
 }
 
 .play-button svg {
@@ -1021,7 +1000,7 @@ body.is-marker-dragging {
 @media (prefers-reduced-motion: reduce) {
   .waveform-bar,
   .open-button,
-  .transport button,
+  .play-button,
   .add-marker-button,
   .marker-dot,
   .marker-short-label,

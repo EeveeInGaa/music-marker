@@ -8,6 +8,7 @@ werden.
 
 Marker können über den Marker-Button an der Wiedergabeposition oder per Rechtsklick direkt auf der
 Waveform angelegt und anschließend am Markerpunkt präzise entlang der Timeline verschoben werden.
+Markerzeiten werden auf Hundertstelsekunden begrenzt.
 Die Leertaste schaltet Wiedergabe und Pause um, solange kein Formularfeld oder anderer interaktiver
 Control fokussiert ist. Titel, Marker und die letzte Wiedergabeposition werden automatisch lokal
 gespeichert und beim nächsten App-Start wiederhergestellt.

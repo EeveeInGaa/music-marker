@@ -83,11 +83,9 @@ export function EmptyPlayer({
       </div>
 
       <div className="transport-preview" aria-hidden="true">
-        <span>−5</span>
         <span className="play-preview">
           <PlayIcon />
         </span>
-        <span>+5</span>
       </div>
 
       <button

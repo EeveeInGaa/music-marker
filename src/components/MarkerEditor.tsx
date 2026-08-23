@@ -1,6 +1,10 @@
 import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { MARKER_COLORS, type Marker, type MarkerPosition } from "../domain/marker";
-import { clampTime, formatPrecisePlaybackTime } from "../domain/time";
+import {
+  clampTimeToCentiseconds,
+  formatPrecisePlaybackTime,
+  roundTimeToCentiseconds,
+} from "../domain/time";
 
 export type MarkerEditorMode = "create" | "edit";
 
@@ -31,7 +35,10 @@ export function MarkerEditor({
 }: MarkerEditorProps) {
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
-  const [draft, setDraft] = useState(initialMarker);
+  const [draft, setDraft] = useState({
+    ...initialMarker,
+    time: clampTimeToCentiseconds(initialMarker.time, duration),
+  });
 
   useEffect(() => {
     const popover = popoverRef.current;
@@ -67,7 +74,7 @@ export function MarkerEditor({
         className="marker-form"
         onSubmit={(event) => {
           event.preventDefault();
-          onSave({ ...draft, time: clampTime(draft.time, duration) });
+          onSave({ ...draft, time: clampTimeToCentiseconds(draft.time, duration) });
         }}
       >
         <header className="marker-form-heading">
@@ -164,9 +171,12 @@ export function MarkerEditor({
             name="time"
             onChange={(event) => {
               const nextTime = event.currentTarget.valueAsNumber;
-              setDraft({ ...draft, time: Number.isFinite(nextTime) ? nextTime : 0 });
+              setDraft({
+                ...draft,
+                time: Number.isFinite(nextTime) ? roundTimeToCentiseconds(nextTime) : 0,
+              });
             }}
-            step="any"
+            step={0.01}
             type="number"
             value={draft.time}
           />

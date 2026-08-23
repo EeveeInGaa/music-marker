@@ -2,9 +2,11 @@ import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import {
   clampTime,
+  clampTimeToCentiseconds,
   formatPlaybackTime,
   formatPrecisePlaybackTime,
   horizontalPositionToTime,
+  roundTimeToCentiseconds,
 } from "./time.ts";
 
 describe("clampTime", () => {
@@ -18,6 +20,25 @@ describe("clampTime", () => {
     assert.equal(clampTime(Number.NaN, 120), 0);
     assert.equal(clampTime(10, Number.POSITIVE_INFINITY), 0);
     assert.equal(clampTime(10, 0), 0);
+  });
+});
+
+describe("roundTimeToCentiseconds", () => {
+  test("begrenzt Zeitwerte auf zwei Nachkommastellen", () => {
+    assert.equal(roundTimeToCentiseconds(12.345_678), 12.35);
+    assert.equal(roundTimeToCentiseconds(12.341), 12.34);
+  });
+
+  test("fängt negative und nicht endliche Werte ab", () => {
+    assert.equal(roundTimeToCentiseconds(-1.25), 0);
+    assert.equal(roundTimeToCentiseconds(Number.NaN), 0);
+  });
+});
+
+describe("clampTimeToCentiseconds", () => {
+  test("rundet und bleibt innerhalb der Audiodauer", () => {
+    assert.equal(clampTimeToCentiseconds(42.678, 120), 42.68);
+    assert.equal(clampTimeToCentiseconds(10, 4.567), 4.56);
   });
 });
 
