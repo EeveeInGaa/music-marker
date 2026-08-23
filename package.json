@@ -15,18 +15,22 @@
     "format:check": "biome format .",
     "lint": "biome lint .",
     "check": "biome check .",
+    "test": "node --experimental-strip-types --test src/domain/time.test.ts",
     "typecheck": "tsc -b --pretty false",
     "build:web": "tsc -b && vite build",
     "build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.7.2",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "wavesurfer.js": "^7.12.11"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.10",
     "@tauri-apps/cli": "^2.11.4",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
