@@ -33,16 +33,40 @@ const waveformBars = [
 
 interface EmptyPlayerProps {
   isSelectingFile: boolean;
+  missingDisplayName: string | undefined;
+  mode: "empty" | "missing" | "restoring";
   onOpenFile: () => void;
 }
 
-export function EmptyPlayer({ isSelectingFile, onOpenFile }: EmptyPlayerProps) {
+export function EmptyPlayer({
+  isSelectingFile,
+  missingDisplayName,
+  mode,
+  onOpenFile,
+}: EmptyPlayerProps) {
+  const isMissing = mode === "missing";
+  const isRestoring = mode === "restoring";
+
   return (
     <section className="player-card empty-player" aria-labelledby="empty-player-title">
       <div className="track-heading">
-        <p className="eyebrow">Lokaler Audioplayer</p>
-        <h1 id="empty-player-title">Kein Titel geöffnet</h1>
-        <p className="empty-copy">Öffne eine Audiodatei, um ihre Waveform hier anzuzeigen.</p>
+        <p className="eyebrow">
+          {isRestoring ? "Lokaler Zustand" : isMissing ? "Datei fehlt" : "Lokaler Audioplayer"}
+        </p>
+        <h1 id="empty-player-title">
+          {isRestoring
+            ? "Letzter Titel wird geladen"
+            : isMissing
+              ? "Audiodatei nicht gefunden"
+              : "Kein Titel geöffnet"}
+        </h1>
+        <p className="empty-copy">
+          {isRestoring
+            ? "Marker und Wiedergabeposition werden lokal wiederhergestellt."
+            : isMissing
+              ? `${missingDisplayName ?? "Der zuletzt geöffnete Titel"} wurde verschoben oder gelöscht. Ordne die Datei neu zu oder öffne oben einen anderen Titel.`
+              : "Öffne eine Audiodatei, um ihre Waveform hier anzuzeigen."}
+        </p>
       </div>
 
       <div className="waveform-preview" aria-hidden="true">
@@ -73,7 +97,15 @@ export function EmptyPlayer({ isSelectingFile, onOpenFile }: EmptyPlayerProps) {
         type="button"
       >
         <FolderIcon />
-        <span>{isSelectingFile ? "Datei wird geöffnet …" : "Audiodatei öffnen"}</span>
+        <span>
+          {isRestoring
+            ? "Zustand wird geladen …"
+            : isSelectingFile
+              ? "Datei wird geöffnet …"
+              : isMissing
+                ? "Datei neu zuordnen"
+                : "Audiodatei öffnen"}
+        </span>
       </button>
     </section>
   );

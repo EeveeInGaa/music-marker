@@ -9,7 +9,8 @@ werden.
 Marker können über den Marker-Button an der Wiedergabeposition oder per Rechtsklick direkt auf der
 Waveform angelegt und anschließend am Markerpunkt präzise entlang der Timeline verschoben werden.
 Die Leertaste schaltet Wiedergabe und Pause um, solange kein Formularfeld oder anderer interaktiver
-Control fokussiert ist.
+Control fokussiert ist. Titel, Marker und die letzte Wiedergabeposition werden automatisch lokal
+gespeichert und beim nächsten App-Start wiederhergestellt.
 
 ## Voraussetzungen
 
@@ -61,7 +62,7 @@ nicht parallel eingesetzt.
 
 - `src/components`: kleine React-UI-Komponenten
 - `src/domain`: UI-unabhängige, strikt typisierte Track- und Marker-Modelle
-- `src/services`: schmale Adapter für native Tauri-Funktionen wie die Dateiauswahl
+- `src/services`: schmale Adapter für native Tauri-Funktionen wie Dateiauswahl und Persistenz
 - `src/styles`: globale Design-Tokens und App-Styling
 - `src-tauri`: schlanke native Tauri-Hülle
 
@@ -75,7 +76,10 @@ kapselt. Freie Bereiche der Waveform bleiben dadurch für Scrubbing erreichbar. 
 aktualisiert das Overlay nur die Darstellung des aktiven Markers; der Track-State wird erst beim
 Loslassen einmalig mit dem exakten, begrenzten Zeitpunkt aktualisiert.
 
-Aktuell verwaltet die App genau einen aktiven Titel. Die Auswahl wird über eine Track-ID modelliert,
-sodass später eine Liste zuletzt verwendeter Titel ergänzt werden kann, ohne Player oder UI auf
-mehrere gleichzeitig geladene Tracks auszurichten. Eine Persistenz der Track- und Marker-Daten folgt
-in einer späteren Stage.
+Der persistierte, versionierte Zustand speichert Tracks in einer ID-basierten Map und merkt sich die
+ID des zuletzt geöffneten Titels. Die Oberfläche verwaltet weiterhin genau einen aktiven Titel und
+zeigt keine Bibliothek. So kann später eine Liste zuletzt verwendeter Titel ergänzt werden, ohne
+Player oder UI auf mehrere gleichzeitig geladene Tracks auszurichten. Beim Start prüft eine schmale
+native Tauri-Funktion den gespeicherten Dateipfad und gibt nur die konkrete Audiodatei erneut für das
+Asset-Protokoll frei. Fehlt sie, bleibt die App bedienbar und bietet eine Neuzuordnung an, bei der
+Marker und Wiedergabeposition erhalten bleiben.

@@ -9,6 +9,7 @@ import { MarkerLayer } from "./MarkerLayer";
 
 interface AudioPlayerProps {
   onMarkersChange: (markers: Marker[]) => void;
+  onPlaybackPositionChange: (time: number) => void;
   sourceUrl: string;
   track: Track;
 }
@@ -34,8 +35,15 @@ function isInteractiveKeyboardTarget(target: EventTarget | null): boolean {
   );
 }
 
-export function AudioPlayer({ onMarkersChange, sourceUrl, track }: AudioPlayerProps) {
+export function AudioPlayer({
+  onMarkersChange,
+  onPlaybackPositionChange,
+  sourceUrl,
+  track,
+}: AudioPlayerProps) {
   const waveformRef = useRef<AudioWaveformHandle | null>(null);
+  const initialPositionRef = useRef(track.lastPlaybackPosition);
+  const lastReportedPositionRef = useRef(track.lastPlaybackPosition);
   const [currentTime, setCurrentTime] = useState(track.lastPlaybackPosition);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -45,24 +53,51 @@ export function AudioPlayer({ onMarkersChange, sourceUrl, track }: AudioPlayerPr
   const [markerEditor, setMarkerEditor] = useState<MarkerEditorState | null>(null);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
-  const handleReady = useCallback(
-    (nextDuration: number) => {
-      setDuration(nextDuration);
-      setIsReady(true);
-      setLoadingProgress(100);
+  const handleReady = useCallback((nextDuration: number) => {
+    setDuration(nextDuration);
+    setIsReady(true);
+    setLoadingProgress(100);
 
-      if (track.lastPlaybackPosition > 0) {
-        waveformRef.current?.seekTo(track.lastPlaybackPosition);
+    if (initialPositionRef.current > 0) {
+      waveformRef.current?.seekTo(initialPositionRef.current);
+    }
+  }, []);
+
+  const reportPlaybackPosition = useCallback(
+    (nextTime: number, force = false) => {
+      const normalizedTime = Math.max(0, nextTime);
+      if (!force && Math.abs(normalizedTime - lastReportedPositionRef.current) < 1) {
+        return;
       }
+
+      lastReportedPositionRef.current = normalizedTime;
+      onPlaybackPositionChange(normalizedTime);
     },
-    [track.lastPlaybackPosition],
+    [onPlaybackPositionChange],
   );
 
-  const handleTimeChange = useCallback((nextTime: number) => {
-    setCurrentTime((previousTime) =>
-      Math.floor(previousTime) === Math.floor(nextTime) ? previousTime : nextTime,
-    );
-  }, []);
+  const handleTimeChange = useCallback(
+    (nextTime: number) => {
+      setCurrentTime((previousTime) =>
+        Math.floor(previousTime) === Math.floor(nextTime) ? previousTime : nextTime,
+      );
+      reportPlaybackPosition(nextTime);
+    },
+    [reportPlaybackPosition],
+  );
+
+  const handlePlayingChange = useCallback(
+    (nextIsPlaying: boolean) => {
+      setIsPlaying(nextIsPlaying);
+      if (!nextIsPlaying) {
+        reportPlaybackPosition(
+          waveformRef.current?.getCurrentTime() ?? lastReportedPositionRef.current,
+          true,
+        );
+      }
+    },
+    [reportPlaybackPosition],
+  );
 
   const handlePlaybackError = useCallback((error: Error) => {
     setPlaybackError(toPlaybackError(error));
@@ -168,7 +203,7 @@ export function AudioPlayer({ onMarkersChange, sourceUrl, track }: AudioPlayerPr
           <AudioWaveform
             onError={handlePlaybackError}
             onLoadingChange={setLoadingProgress}
-            onPlayingChange={setIsPlaying}
+            onPlayingChange={handlePlayingChange}
             onReady={handleReady}
             onRequestMarkerAtTime={handleAddMarkerAtTime}
             onTimeChange={handleTimeChange}

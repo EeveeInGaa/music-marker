@@ -10,8 +10,3 @@ export interface Track {
   markers: Marker[];
   lastPlaybackPosition: number;
 }
-
-/** Current selection today; can later point into a collection of tracks. */
-export interface ActiveTrackState {
-  activeTrackId: TrackId | null;
-}
