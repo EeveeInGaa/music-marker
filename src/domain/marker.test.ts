@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import type { Marker, MarkerLabelGeometry } from "./marker.ts";
-import { assignMarkerLabelLanes, moveMarker, sortMarkers } from "./marker.ts";
+import {
+  assignMarkerLabelLanes,
+  moveMarker,
+  sortMarkers,
+  updateMarkerDescription,
+} from "./marker.ts";
 
 const createMarker = (id: string, time: number): Marker => ({
   color: "#4f7dd9",
@@ -52,6 +57,22 @@ describe("moveMarker", () => {
     const markers = [createMarker("known", 5)];
 
     assert.deepEqual(moveMarker(markers, "missing", 8), markers);
+  });
+});
+
+describe("updateMarkerDescription", () => {
+  test("aktualisiert nur die Beschreibung des gewählten Markers", () => {
+    const markers = [createMarker("first", 5), createMarker("second", 10)];
+    const updated = updateMarkerDescription(markers, "first", "Neuer Text");
+
+    assert.deepEqual(
+      updated.map(({ description, id, time }) => ({ description, id, time })),
+      [
+        { description: "Neuer Text", id: "first", time: 5 },
+        { description: "", id: "second", time: 10 },
+      ],
+    );
+    assert.equal(markers[0]?.description, "");
   });
 });
 

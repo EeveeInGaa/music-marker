@@ -59,6 +59,7 @@
   },
   "marker": {
     "defaultLabel": "Marker",
+    "editDescription": "Markerbeschreibung bei {time} direkt bearbeiten",
     "editOrMove": "{label} bei {time} bearbeiten oder verschieben"
   },
   "markerEditor": {

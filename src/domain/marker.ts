@@ -42,6 +42,14 @@ export function moveMarker(markers: readonly Marker[], markerId: string, time: n
   );
 }
 
+export function updateMarkerDescription(
+  markers: readonly Marker[],
+  markerId: string,
+  description: string,
+): Marker[] {
+  return markers.map((marker) => (marker.id === markerId ? { ...marker, description } : marker));
+}
+
 export function assignMarkerLabelLanes(
   labels: readonly MarkerLabelGeometry[],
   duration: number,

@@ -14,6 +14,7 @@ import { useI18n } from "../i18n/i18n";
 interface MarkerLayerProps {
   duration: number;
   markers: readonly Marker[];
+  onDescriptionChange: (markerId: string, description: string) => void;
   onDragStart: (markerId: string) => void;
   onMove: (markerId: string, time: number) => void;
   onSelect: (marker: Marker) => void;
@@ -24,6 +25,7 @@ interface MarkerItemProps {
   duration: number;
   isSelected: boolean;
   marker: Marker;
+  onDescriptionChange: (markerId: string, description: string) => void;
   onDragStart: (markerId: string) => void;
   onMove: (markerId: string, time: number) => void;
   onSelect: (marker: Marker) => void;
@@ -59,6 +61,7 @@ const MarkerItem = memo(function MarkerItem({
   duration,
   isSelected,
   marker,
+  onDescriptionChange,
   onDragStart,
   onMove,
   onSelect,
@@ -68,11 +71,17 @@ const MarkerItem = memo(function MarkerItem({
   const dragTimeRef = useRef<HTMLOutputElement | null>(null);
   const dragSessionRef = useRef<DragSession | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const cancelDescriptionEditRef = useRef(false);
   const suppressClickRef = useRef(false);
   const suppressClickTimerRef = useRef<number | null>(null);
+  const [draftDescription, setDraftDescription] = useState(marker.description);
   const [isDragging, setIsDragging] = useState(false);
-  const description = marker.description.trim();
+  const description = draftDescription.trim();
   const label = description.length > 0 ? description : t("marker.defaultLabel");
+
+  useEffect(() => {
+    setDraftDescription(marker.description);
+  }, [marker.description]);
 
   const paintDragPosition = () => {
     animationFrameRef.current = null;
@@ -114,7 +123,14 @@ const MarkerItem = memo(function MarkerItem({
       dragSession.timelineWidth,
       duration,
     );
-    dragSession.didMove = dragSession.didMove || Math.abs(horizontalDelta) >= 2;
+    const didStartDragging = !dragSession.didMove && Math.abs(horizontalDelta) >= 2;
+    dragSession.didMove = dragSession.didMove || didStartDragging;
+
+    if (didStartDragging) {
+      setIsDragging(true);
+      document.body.classList.add("is-marker-dragging");
+      onDragStart(marker.id);
+    }
   };
 
   const finishDrag = (shouldCommit: boolean) => {
@@ -197,10 +213,7 @@ const MarkerItem = memo(function MarkerItem({
       timelineWidth: timelineBounds.width,
     };
     suppressClickRef.current = false;
-    setIsDragging(true);
-    document.body.classList.add("is-marker-dragging");
     event.currentTarget.setPointerCapture(event.pointerId);
-    onDragStart(marker.id);
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -210,7 +223,9 @@ const MarkerItem = memo(function MarkerItem({
 
     event.stopPropagation();
     updateDragPosition(event.clientX);
-    scheduleDragPaint();
+    if (dragSessionRef.current.didMove) {
+      scheduleDragPaint();
+    }
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -276,13 +291,45 @@ const MarkerItem = memo(function MarkerItem({
         type="button"
       >
         <span className="marker-dot" aria-hidden="true" />
-        <span className="marker-short-label" aria-hidden="true">
-          {label}
-        </span>
         <output aria-hidden="true" className="marker-drag-time" ref={dragTimeRef}>
           {formatPrecisePlaybackTime(marker.time)}
         </output>
       </button>
+      <input
+        aria-label={t("marker.editDescription", {
+          time: formatPrecisePlaybackTime(marker.time),
+        })}
+        className="marker-short-label"
+        maxLength={500}
+        onBlur={(event) => {
+          if (cancelDescriptionEditRef.current) {
+            cancelDescriptionEditRef.current = false;
+            setDraftDescription(marker.description);
+            return;
+          }
+
+          if (event.currentTarget.value !== marker.description) {
+            onDescriptionChange(marker.id, event.currentTarget.value);
+          }
+        }}
+        onChange={(event) => setDraftDescription(event.currentTarget.value)}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          event.stopPropagation();
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.currentTarget.blur();
+          } else if (event.key === "Escape") {
+            event.preventDefault();
+            cancelDescriptionEditRef.current = true;
+            event.currentTarget.blur();
+          }
+        }}
+        onPointerDown={(event) => event.stopPropagation()}
+        placeholder={t("marker.defaultLabel")}
+        type="text"
+        value={draftDescription}
+      />
     </div>
   );
 });
@@ -290,6 +337,7 @@ const MarkerItem = memo(function MarkerItem({
 export function MarkerLayer({
   duration,
   markers,
+  onDescriptionChange,
   onDragStart,
   onMove,
   onSelect,
@@ -368,6 +416,9 @@ export function MarkerLayer({
     updateLabelLayout();
     const resizeObserver = new ResizeObserver(scheduleLabelLayout);
     resizeObserver.observe(layer);
+    for (const label of layer.querySelectorAll<HTMLElement>(".marker-short-label")) {
+      resizeObserver.observe(label);
+    }
 
     return () => {
       resizeObserver.disconnect();
@@ -387,6 +438,7 @@ export function MarkerLayer({
           isSelected={selectedMarkerId === marker.id}
           key={marker.id}
           marker={marker}
+          onDescriptionChange={onDescriptionChange}
           onDragStart={onDragStart}
           onMove={onMove}
           onSelect={onSelect}

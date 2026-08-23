@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_MARKER_COLOR, type Marker, moveMarker, sortMarkers } from "../domain/marker";
+import {
+  DEFAULT_MARKER_COLOR,
+  type Marker,
+  moveMarker,
+  sortMarkers,
+  updateMarkerDescription,
+} from "../domain/marker";
 import {
   clampTime,
   clampTimeToCentiseconds,
@@ -173,6 +179,13 @@ export function AudioPlayer({
     [duration, onMarkersChange, track.markers],
   );
 
+  const handleMarkerDescriptionChange = useCallback(
+    (markerId: string, description: string) => {
+      onMarkersChange(updateMarkerDescription(track.markers, markerId, description));
+    },
+    [onMarkersChange, track.markers],
+  );
+
   const handleTogglePlayback = useCallback(async () => {
     try {
       await waveformRef.current?.togglePlayback();
@@ -223,6 +236,7 @@ export function AudioPlayer({
             <MarkerLayer
               duration={duration}
               markers={track.markers}
+              onDescriptionChange={handleMarkerDescriptionChange}
               onDragStart={handleMarkerDragStart}
               onMove={handleMarkerMove}
               onSelect={handleSelectMarker}
