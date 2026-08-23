@@ -3,7 +3,12 @@
 Audio Marker ist eine minimalistische, vollständig lokale macOS-App zum Abspielen eines
 Audiotitels und zum Setzen beschreibender Marker auf dessen Waveform. Das Projekt wird in klar
 abgegrenzten Stages entwickelt. Aktuell können einzelne lokale Audiodateien geöffnet und über
-eine vereinfachte Waveform wiedergegeben werden.
+eine vereinfachte Waveform wiedergegeben sowie mit farbigen, beschreibenden Markern versehen
+werden.
+
+Marker können über den Marker-Button an der Wiedergabeposition oder per Rechtsklick direkt auf der
+Waveform angelegt werden. Die Leertaste schaltet Wiedergabe und Pause um, solange kein Formularfeld
+oder anderer interaktiver Control fokussiert ist.
 
 ## Voraussetzungen
 
@@ -54,7 +59,7 @@ nicht parallel eingesetzt.
 ## Architektur
 
 - `src/components`: kleine React-UI-Komponenten
-- `src/domain`: UI-unabhängige, strikt typisierte Track- und später Marker-Modelle
+- `src/domain`: UI-unabhängige, strikt typisierte Track- und Marker-Modelle
 - `src/services`: schmale Adapter für native Tauri-Funktionen wie die Dateiauswahl
 - `src/styles`: globale Design-Tokens und App-Styling
 - `src-tauri`: schlanke native Tauri-Hülle
@@ -63,6 +68,11 @@ nicht parallel eingesetzt.
 typisierte Player-Schnittstelle bereit. Der native Dialog liefert den lokalen Pfad; Tauri stellt
 die ausgewählte Datei anschließend über einen temporär freigegebenen Asset-URL bereit.
 
+Marker gehören als Domain-Daten zum Track. `MarkerLayer` zeichnet sie unabhängig von WaveSurfer als
+schmales Overlay, während `MarkerEditor` die Bearbeitung in einem nativen, nicht-modalen Popover
+kapselt. Freie Bereiche der Waveform bleiben dadurch für Scrubbing erreichbar.
+
 Aktuell verwaltet die App genau einen aktiven Titel. Die Auswahl wird über eine Track-ID modelliert,
 sodass später eine Liste zuletzt verwendeter Titel ergänzt werden kann, ohne Player oder UI auf
-mehrere gleichzeitig geladene Tracks auszurichten. Marker und Persistenz folgen in späteren Stages.
+mehrere gleichzeitig geladene Tracks auszurichten. Eine Persistenz der Track- und Marker-Daten folgt
+in einer späteren Stage.

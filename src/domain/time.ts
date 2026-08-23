@@ -6,6 +6,22 @@ export function clampTime(time: number, duration: number): number {
   return Math.min(Math.max(time, 0), duration);
 }
 
+export function horizontalPositionToTime(
+  horizontalPosition: number,
+  timelineWidth: number,
+  duration: number,
+): number {
+  if (
+    !Number.isFinite(horizontalPosition) ||
+    !Number.isFinite(timelineWidth) ||
+    timelineWidth <= 0
+  ) {
+    return 0;
+  }
+
+  return clampTime((horizontalPosition / timelineWidth) * duration, duration);
+}
+
 export function formatPlaybackTime(time: number): string {
   const safeTime = Number.isFinite(time) && time > 0 ? Math.floor(time) : 0;
   const hours = Math.floor(safeTime / 3600);

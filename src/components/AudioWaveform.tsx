@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import WaveSurfer from "wavesurfer.js";
-import { clampTime } from "../domain/time";
+import { clampTime, horizontalPositionToTime } from "../domain/time";
 
 export interface AudioWaveformHandle {
   getCurrentTime: () => number;
@@ -14,6 +14,7 @@ interface AudioWaveformProps {
   onLoadingChange: (progress: number) => void;
   onPlayingChange: (isPlaying: boolean) => void;
   onReady: (duration: number) => void;
+  onRequestMarkerAtTime: (time: number) => void;
   onTimeChange: (time: number) => void;
   sourceUrl: string;
 }
@@ -30,7 +31,15 @@ function getWaveformColors() {
 
 export const AudioWaveform = forwardRef<AudioWaveformHandle, AudioWaveformProps>(
   function AudioWaveform(
-    { onError, onLoadingChange, onPlayingChange, onReady, onTimeChange, sourceUrl },
+    {
+      onError,
+      onLoadingChange,
+      onPlayingChange,
+      onReady,
+      onRequestMarkerAtTime,
+      onTimeChange,
+      sourceUrl,
+    },
     ref,
   ) {
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -91,6 +100,31 @@ export const AudioWaveform = forwardRef<AudioWaveformHandle, AudioWaveformProps>
       });
       waveSurferRef.current = waveSurfer;
 
+      const requestMarkerAtHorizontalPosition = (clientX: number) => {
+        const bounds = container.getBoundingClientRect();
+        const markerTime = horizontalPositionToTime(
+          clientX - bounds.left,
+          bounds.width,
+          waveSurfer.getDuration(),
+        );
+        onRequestMarkerAtTime(markerTime);
+      };
+
+      const handleSecondaryPointerDown = (event: PointerEvent) => {
+        const isSecondaryClick = event.button === 2 || (event.button === 0 && event.ctrlKey);
+        if (!isSecondaryClick) {
+          return;
+        }
+
+        event.preventDefault();
+        requestMarkerAtHorizontalPosition(event.clientX);
+      };
+
+      const handleContextMenu = (event: MouseEvent) => event.preventDefault();
+
+      container.addEventListener("pointerdown", handleSecondaryPointerDown, true);
+      container.addEventListener("contextmenu", handleContextMenu);
+
       waveSurfer.on("loading", onLoadingChange);
       waveSurfer.on("ready", onReady);
       waveSurfer.on("timeupdate", onTimeChange);
@@ -106,11 +140,21 @@ export const AudioWaveform = forwardRef<AudioWaveformHandle, AudioWaveformProps>
       void waveSurfer.load(sourceUrl).catch(() => undefined);
 
       return () => {
+        container.removeEventListener("pointerdown", handleSecondaryPointerDown, true);
+        container.removeEventListener("contextmenu", handleContextMenu);
         colorScheme.removeEventListener("change", updateColors);
         waveSurfer.destroy();
         waveSurferRef.current = null;
       };
-    }, [onError, onLoadingChange, onPlayingChange, onReady, onTimeChange, sourceUrl]);
+    }, [
+      onError,
+      onLoadingChange,
+      onPlayingChange,
+      onReady,
+      onRequestMarkerAtTime,
+      onTimeChange,
+      sourceUrl,
+    ]);
 
     return <div className="waveform" ref={containerRef} />;
   },

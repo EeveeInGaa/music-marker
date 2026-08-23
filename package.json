@@ -15,7 +15,7 @@
     "format:check": "biome format .",
     "lint": "biome lint .",
     "check": "biome check .",
-    "test": "node --experimental-strip-types --test src/domain/time.test.ts",
+    "test": "node --experimental-strip-types --test src/domain/time.test.ts src/domain/marker.test.ts",
     "typecheck": "tsc -b --pretty false",
     "build:web": "tsc -b && vite build",
     "build": "tauri build"

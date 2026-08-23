@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { clampTime, formatPlaybackTime } from "./time.ts";
+import { clampTime, formatPlaybackTime, horizontalPositionToTime } from "./time.ts";
 
 describe("clampTime", () => {
   test("begrenzt Positionen auf die Audiodauer", () => {
@@ -13,6 +13,19 @@ describe("clampTime", () => {
     assert.equal(clampTime(Number.NaN, 120), 0);
     assert.equal(clampTime(10, Number.POSITIVE_INFINITY), 0);
     assert.equal(clampTime(10, 0), 0);
+  });
+});
+
+describe("horizontalPositionToTime", () => {
+  test("rechnet eine horizontale Position in eine Audiozeit um", () => {
+    assert.equal(horizontalPositionToTime(250, 1000, 120), 30);
+    assert.equal(horizontalPositionToTime(1000, 1000, 120), 120);
+  });
+
+  test("begrenzt Positionen auf die Timeline", () => {
+    assert.equal(horizontalPositionToTime(-20, 1000, 120), 0);
+    assert.equal(horizontalPositionToTime(1200, 1000, 120), 120);
+    assert.equal(horizontalPositionToTime(20, 0, 120), 0);
   });
 });
 

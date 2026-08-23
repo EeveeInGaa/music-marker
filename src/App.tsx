@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { AudioPlayer } from "./components/AudioPlayer";
 import { AppShell } from "./components/AppShell";
+import { AudioPlayer } from "./components/AudioPlayer";
 import { EmptyPlayer } from "./components/EmptyPlayer";
+import type { Marker } from "./domain/marker";
 import type { Track } from "./domain/track";
 import { selectAudioFile } from "./services/audioFiles";
 
@@ -38,6 +39,7 @@ export function App() {
           displayName: selectedFile.displayName,
           id: crypto.randomUUID(),
           lastPlaybackPosition: 0,
+          markers: [],
           sourcePath: selectedFile.sourcePath,
         },
       });
@@ -46,6 +48,17 @@ export function App() {
     } finally {
       setIsSelectingFile(false);
     }
+  }, []);
+
+  const handleMarkersChange = useCallback((markers: Marker[]) => {
+    setActiveSession((session) =>
+      session === null
+        ? null
+        : {
+            ...session,
+            track: { ...session.track, markers },
+          },
+    );
   }, []);
 
   useEffect(() => {
@@ -71,6 +84,7 @@ export function App() {
       ) : (
         <AudioPlayer
           key={activeSession.track.id}
+          onMarkersChange={handleMarkersChange}
           sourceUrl={activeSession.sourceUrl}
           track={activeSession.track}
         />

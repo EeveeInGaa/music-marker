@@ -7,6 +7,7 @@
 
   --canvas: #f3f2ee;
   --surface: rgba(255, 255, 255, 0.68);
+  --surface-solid: #faf9f6;
   --surface-border: rgba(30, 31, 29, 0.09);
   --text: #252724;
   --text-muted: #70736d;
@@ -28,6 +29,7 @@
   :root {
     --canvas: #181918;
     --surface: rgba(37, 39, 36, 0.66);
+    --surface-solid: #262724;
     --surface-border: rgba(255, 255, 255, 0.08);
     --text: #f0f0ea;
     --text-muted: #a4a79f;
@@ -302,9 +304,14 @@ h1 {
   margin: clamp(2rem, 4vw, 2.75rem) 0 0;
 }
 
+.timeline-stage {
+  position: relative;
+}
+
 .waveform {
   width: 100%;
-  min-height: 7rem;
+  min-height: 10rem;
+  padding-block: 1.5rem;
   cursor: ew-resize;
 }
 
@@ -328,7 +335,7 @@ h1 {
 }
 
 .time-display {
-  margin: 2rem 0 0;
+  margin: 1.5rem 0 0;
   color: var(--text-muted);
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
@@ -339,11 +346,24 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 1.125rem;
   margin-inline: 0;
   padding: 0;
   border: 0;
   gap: 1rem;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.125rem;
+  gap: 0.875rem;
+}
+
+.control-divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--line);
 }
 
 .transport button {
@@ -392,6 +412,418 @@ h1 {
 .play-button svg {
   width: 1.125rem;
   fill: currentColor;
+}
+
+.add-marker-button {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  gap: 0.375rem;
+  cursor: default;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.add-marker-button span {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.add-marker-button:hover:not(:disabled) {
+  background: var(--button-surface);
+  color: var(--text);
+}
+
+.add-marker-button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.add-marker-button:disabled {
+  color: var(--text-faint);
+  opacity: 0.48;
+}
+
+.marker-layer {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--marker-offset);
+  width: 0;
+  color: var(--marker-color);
+  pointer-events: none;
+}
+
+.marker-line {
+  position: absolute;
+  left: -0.75px;
+  width: 1.5px;
+  background: currentColor;
+  opacity: 0.86;
+}
+
+.marker-top .marker-line {
+  top: 0.75rem;
+  bottom: 50%;
+}
+
+.marker-bottom .marker-line {
+  top: 50%;
+  bottom: 0.75rem;
+}
+
+.marker-handle {
+  position: absolute;
+  left: 0;
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: currentColor;
+  place-items: center;
+  pointer-events: auto;
+  cursor: default;
+  transform: translateX(-50%);
+}
+
+.marker-top .marker-handle {
+  top: -0.125rem;
+}
+
+.marker-bottom .marker-handle {
+  bottom: -0.125rem;
+}
+
+.marker-dot {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  border: 2px solid var(--surface-solid);
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 1px currentColor;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.marker-handle:hover .marker-dot,
+.marker-handle:focus-visible .marker-dot,
+.timeline-marker.is-selected .marker-dot {
+  box-shadow:
+    0 0 0 1px currentColor,
+    0 0 0 0.25rem color-mix(in oklab, currentColor, transparent 76%);
+  transform: scale(1.08);
+}
+
+.marker-short-label {
+  position: absolute;
+  left: 50%;
+  width: max-content;
+  max-width: 9rem;
+  overflow: hidden;
+  padding: 0.25rem 0.4375rem;
+  border: 1px solid color-mix(in oklab, currentColor, transparent 70%);
+  border-radius: 0.4375rem;
+  background: var(--surface-solid);
+  box-shadow: 0 0.5rem 1.5rem rgba(20, 20, 18, 0.1);
+  color: var(--text);
+  font-size: 0.625rem;
+  font-weight: 560;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateX(-50%) translateY(0.2rem);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.marker-top .marker-short-label {
+  bottom: calc(100% + 0.25rem);
+}
+
+.marker-bottom .marker-short-label {
+  top: calc(100% + 0.25rem);
+}
+
+.marker-handle:hover .marker-short-label,
+.marker-handle:focus-visible .marker-short-label,
+.timeline-marker.is-selected .marker-short-label {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.marker-popover {
+  position: fixed;
+  inset: auto 1.25rem 3.5rem auto;
+  width: min(22rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 5rem);
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--surface-border);
+  border-radius: 1.125rem;
+  background: var(--surface-solid);
+  box-shadow: 0 1.25rem 4rem rgba(20, 20, 18, 0.2);
+  color: var(--text);
+}
+
+.marker-popover::backdrop {
+  background: transparent;
+}
+
+.marker-form {
+  display: grid;
+  padding: 1.25rem;
+  gap: 1rem;
+}
+
+.marker-form-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.marker-form-heading .eyebrow {
+  margin-bottom: 0.25rem;
+}
+
+.marker-form-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+}
+
+.popover-close {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  place-items: center;
+  cursor: default;
+}
+
+.popover-close:hover {
+  background: var(--button-surface);
+  color: var(--text);
+}
+
+.form-field {
+  display: grid;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  gap: 0.4375rem;
+}
+
+.form-field textarea,
+.form-field input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.6875rem;
+  background: var(--button-surface);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.form-field textarea {
+  min-height: 4.5rem;
+  padding: 0.6875rem 0.75rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.form-field input {
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.form-field textarea::placeholder {
+  color: var(--text-faint);
+}
+
+.marker-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.marker-fieldset legend {
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.color-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.color-option {
+  position: relative;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  place-items: center;
+  cursor: default;
+}
+
+.color-option input,
+.position-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.color-swatch {
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 2px solid var(--surface-solid);
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 1px var(--line);
+  transition:
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.color-option:hover .color-swatch,
+.color-option:has(input:focus-visible) .color-swatch {
+  transform: scale(1.08);
+}
+
+.color-option:has(input:focus-visible) {
+  outline: 0.1875rem solid var(--accent);
+  outline-offset: 0.0625rem;
+}
+
+.color-option:has(input:checked) .color-swatch {
+  box-shadow:
+    0 0 0 2px var(--surface-solid),
+    0 0 0 3px var(--text);
+  transform: scale(1.08);
+}
+
+.position-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  padding: 0.1875rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6875rem;
+  background: var(--button-surface);
+}
+
+.position-option {
+  position: relative;
+  cursor: default;
+}
+
+.position-option span {
+  display: grid;
+  min-height: 2rem;
+  border-radius: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  place-items: center;
+}
+
+.position-option:has(input:checked) span {
+  background: var(--surface-solid);
+  box-shadow: 0 1px 0.25rem rgba(20, 20, 18, 0.1);
+  color: var(--text);
+}
+
+.position-option:has(input:focus-visible) span {
+  outline: 0.1875rem solid var(--accent);
+  outline-offset: 0.0625rem;
+}
+
+.marker-time-field {
+  max-width: 12rem;
+}
+
+.marker-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.25rem;
+  gap: 0.75rem;
+}
+
+.marker-form-actions > div {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.marker-form-actions button {
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 580;
+  cursor: default;
+}
+
+.secondary-button,
+.delete-marker-button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.secondary-button:hover {
+  background: var(--button-surface);
+  color: var(--text);
+}
+
+.delete-marker-button {
+  color: var(--error);
+}
+
+.delete-marker-button:hover {
+  background: var(--error-surface);
+}
+
+.primary-button {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.primary-button:hover {
+  filter: brightness(1.05);
 }
 
 .visually-hidden:where(:not(:focus-within, :active)) {
@@ -453,12 +885,29 @@ h1 {
     clip-path: inset(50%);
     white-space: nowrap;
   }
+
+  .marker-popover {
+    inset: auto 1rem 3.25rem;
+    width: auto;
+  }
+
+  .player-controls {
+    gap: 0.5rem;
+  }
+
+  .add-marker-button {
+    padding-inline: 0.5rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .waveform-bar,
   .open-button,
-  .transport button {
+  .transport button,
+  .add-marker-button,
+  .marker-dot,
+  .marker-short-label,
+  .color-swatch {
     animation: none;
     transition: none;
   }
