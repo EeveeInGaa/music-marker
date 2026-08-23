@@ -12,6 +12,13 @@ Space toggles playback and pause unless a form field or another interactive cont
 Tracks, markers, and the last playback position are stored automatically and restored the next time
 the app starts.
 
+The complete interface is available in English and German. English is the default language, and a
+compact switch in the title bar changes the language immediately. The selected language is stored
+locally. Translation resources live in `src/i18n/translations/en.json` and
+`src/i18n/translations/de.json`, grouped into nested objects by interface area. The small typed React
+integration resolves readable dot-path keys and does not require an external internationalization
+dependency.
+
 It was created with the assistance of an AI Agent to test out some AI approaches and to quickly be able to use the app.
 
 ## Prerequisites
@@ -61,6 +68,7 @@ pnpm build         # build the native Tauri app
 
 - `src/components`: small React UI components
 - `src/domain`: UI-independent, strictly typed track and marker models
+- `src/i18n`: typed UI translation integration and separate language resources
 - `src/services`: narrow adapters for native Tauri features such as file selection and persistence
 - `src/styles`: global design tokens and app styling
 - `src-tauri`: lightweight native Tauri shell

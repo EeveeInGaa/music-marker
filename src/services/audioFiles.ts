@@ -7,6 +7,13 @@ export interface SelectedAudioFile {
   sourceUrl: string;
 }
 
+export interface AudioFileDialogLabels {
+  filterName: string;
+  title: string;
+}
+
+export class SelectedAudioFileUnavailableError extends Error {}
+
 function getDisplayName(sourcePath: string): string {
   return sourcePath.split(/[\\/]/).at(-1) ?? sourcePath;
 }
@@ -16,17 +23,19 @@ export async function resolveAudioFile(sourcePath: string): Promise<string | nul
   return isAvailable ? convertFileSrc(sourcePath) : null;
 }
 
-export async function selectAudioFile(): Promise<SelectedAudioFile | null> {
+export async function selectAudioFile(
+  labels: AudioFileDialogLabels,
+): Promise<SelectedAudioFile | null> {
   const sourcePath = await open({
     directory: false,
     filters: [
       {
-        name: "Audiodateien",
+        name: labels.filterName,
         extensions: ["mp3", "m4a", "aac", "wav", "aiff", "aif", "flac", "ogg", "opus"],
       },
     ],
     multiple: false,
-    title: "Audiotitel öffnen",
+    title: labels.title,
   });
 
   if (sourcePath === null) {
@@ -35,7 +44,7 @@ export async function selectAudioFile(): Promise<SelectedAudioFile | null> {
 
   const sourceUrl = await resolveAudioFile(sourcePath);
   if (sourceUrl === null) {
-    throw new Error("Die ausgewählte Datei ist nicht mehr verfügbar.");
+    throw new SelectedAudioFileUnavailableError();
   }
 
   return {

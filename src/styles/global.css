@@ -149,6 +149,65 @@ select {
   letter-spacing: -0.01em;
 }
 
+.titlebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.language-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  min-width: 4.25rem;
+  margin: 0;
+  padding: 0.1875rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--button-surface);
+}
+
+.language-switcher label {
+  position: relative;
+  cursor: default;
+}
+
+.language-switcher input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.language-switcher span {
+  display: grid;
+  min-width: 1.875rem;
+  min-height: 1.5rem;
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.625rem;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+  place-items: center;
+  transition:
+    background-color 150ms ease,
+    box-shadow 150ms ease,
+    color 150ms ease;
+}
+
+.language-switcher label:hover span {
+  color: var(--text);
+}
+
+.language-switcher label:has(input:checked) span {
+  background: var(--surface-solid);
+  box-shadow: 0 1px 0.25rem rgba(20, 20, 18, 0.1);
+  color: var(--text);
+}
+
+.language-switcher label:has(input:focus-visible) span {
+  outline: 0.1875rem solid var(--accent);
+  outline-offset: 0.0625rem;
+}
+
 .workspace {
   display: flex;
   flex-direction: column;
@@ -1012,6 +1071,10 @@ body.is-marker-dragging {
   .marker-popover,
   .color-swatch {
     animation: none;
+    transition: none;
+  }
+
+  .language-switcher span {
     transition: none;
   }
 }

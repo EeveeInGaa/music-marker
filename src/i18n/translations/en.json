@@ -1,0 +1,90 @@
+{
+  "language": {
+    "switcherLabel": "Language",
+    "english": "English",
+    "englishShort": "EN",
+    "german": "German",
+    "germanShort": "DE"
+  },
+  "header": {
+    "openAudio": "Open audio",
+    "opening": "Opening…"
+  },
+  "status": {
+    "restoring": "Loading local state",
+    "selectingFile": "File picker open",
+    "trackLoaded": "Track loaded · saved locally automatically",
+    "missingTrack": "Saved audio file is missing",
+    "ready": "Ready · saved locally automatically"
+  },
+  "error": {
+    "fileOpen": "The file could not be opened.",
+    "fileOpenWithDetail": "The file could not be opened: {detail}",
+    "persistence": "The local state could not be saved.",
+    "persistenceWithDetail": "The local state could not be saved: {detail}",
+    "restore": "The last state could not be restored.",
+    "restoreWithDetail": "The last state could not be restored: {detail}",
+    "selectedFileUnavailable": "The selected file is no longer available.",
+    "playback": "The audio file could not be loaded.",
+    "playbackWithDetail": "The audio file could not be loaded: {detail}"
+  },
+  "fileDialog": {
+    "audioFiles": "Audio files",
+    "openTrack": "Open audio track"
+  },
+  "empty": {
+    "localState": "Local state",
+    "fileMissing": "File missing",
+    "localPlayer": "Local audio player",
+    "restoringTitle": "Loading last track",
+    "missingTitle": "Audio file not found",
+    "title": "No track open",
+    "restoringCopy": "Markers and playback position are being restored locally.",
+    "missingTrackFallback": "The last opened track",
+    "missingCopy": "{displayName} was moved or deleted. Relink the file or open a different track above.",
+    "copy": "Open an audio file to display its waveform here.",
+    "restoringButton": "Loading state…",
+    "openingButton": "Opening file…",
+    "relinkButton": "Relink file",
+    "openButton": "Open audio file"
+  },
+  "player": {
+    "activeTrack": "Active track",
+    "waveformInstructions": "Empty space: seek · Marker point: drag · Right-click: new marker.",
+    "loadingWaveform": "Loading waveform · {progress}%",
+    "timeDescription": "Playback position and total duration: ",
+    "pause": "Pause",
+    "play": "Play",
+    "addMarker": "Marker"
+  },
+  "marker": {
+    "defaultLabel": "Marker",
+    "editOrMove": "Edit or move {label} at {time}"
+  },
+  "markerEditor": {
+    "newMarker": "New marker",
+    "marker": "Marker",
+    "close": "Close marker editor",
+    "dragHint": "Drag the marker point to move it directly.",
+    "description": "Description",
+    "descriptionPlaceholder": "Short note (optional)",
+    "color": "Color",
+    "position": "Position",
+    "top": "Top",
+    "bottom": "Bottom",
+    "time": "Time in seconds",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "add": "Add",
+    "save": "Save"
+  },
+  "markerColor": {
+    "blue": "Blue",
+    "teal": "Teal",
+    "green": "Green",
+    "yellow": "Yellow",
+    "violet": "Violet",
+    "pink": "Pink",
+    "slate": "Slate"
+  }
+}

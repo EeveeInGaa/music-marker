@@ -1,0 +1,90 @@
+{
+  "language": {
+    "switcherLabel": "Sprache",
+    "english": "Englisch",
+    "englishShort": "EN",
+    "german": "Deutsch",
+    "germanShort": "DE"
+  },
+  "header": {
+    "openAudio": "Audio öffnen",
+    "opening": "Wird geöffnet…"
+  },
+  "status": {
+    "restoring": "Lokaler Zustand wird geladen",
+    "selectingFile": "Dateiauswahl geöffnet",
+    "trackLoaded": "Titel geladen · automatisch lokal gespeichert",
+    "missingTrack": "Gespeicherte Audiodatei fehlt",
+    "ready": "Bereit · automatisch lokal gespeichert"
+  },
+  "error": {
+    "fileOpen": "Die Datei konnte nicht geöffnet werden.",
+    "fileOpenWithDetail": "Die Datei konnte nicht geöffnet werden: {detail}",
+    "persistence": "Der lokale Zustand konnte nicht gespeichert werden.",
+    "persistenceWithDetail": "Der lokale Zustand konnte nicht gespeichert werden: {detail}",
+    "restore": "Der letzte Zustand konnte nicht wiederhergestellt werden.",
+    "restoreWithDetail": "Der letzte Zustand konnte nicht wiederhergestellt werden: {detail}",
+    "selectedFileUnavailable": "Die ausgewählte Datei ist nicht mehr verfügbar.",
+    "playback": "Die Audiodatei konnte nicht geladen werden.",
+    "playbackWithDetail": "Die Audiodatei konnte nicht geladen werden: {detail}"
+  },
+  "fileDialog": {
+    "audioFiles": "Audiodateien",
+    "openTrack": "Audiotitel öffnen"
+  },
+  "empty": {
+    "localState": "Lokaler Zustand",
+    "fileMissing": "Datei fehlt",
+    "localPlayer": "Lokaler Audioplayer",
+    "restoringTitle": "Letzter Titel wird geladen",
+    "missingTitle": "Audiodatei nicht gefunden",
+    "title": "Kein Titel geöffnet",
+    "restoringCopy": "Marker und Wiedergabeposition werden lokal wiederhergestellt.",
+    "missingTrackFallback": "Der zuletzt geöffnete Titel",
+    "missingCopy": "{displayName} wurde verschoben oder gelöscht. Ordne die Datei neu zu oder öffne oben einen anderen Titel.",
+    "copy": "Öffne eine Audiodatei, um ihre Waveform hier anzuzeigen.",
+    "restoringButton": "Zustand wird geladen…",
+    "openingButton": "Datei wird geöffnet…",
+    "relinkButton": "Datei neu zuordnen",
+    "openButton": "Audiodatei öffnen"
+  },
+  "player": {
+    "activeTrack": "Aktiver Titel",
+    "waveformInstructions": "Freie Fläche: spulen · Markerpunkt: verschieben · Rechtsklick: neuer Marker.",
+    "loadingWaveform": "Waveform wird geladen · {progress}%",
+    "timeDescription": "Wiedergabeposition und Gesamtdauer: ",
+    "pause": "Pause",
+    "play": "Wiedergabe",
+    "addMarker": "Marker"
+  },
+  "marker": {
+    "defaultLabel": "Marker",
+    "editOrMove": "{label} bei {time} bearbeiten oder verschieben"
+  },
+  "markerEditor": {
+    "newMarker": "Neuer Marker",
+    "marker": "Marker",
+    "close": "Marker-Editor schließen",
+    "dragHint": "Den Markerpunkt ziehen, um ihn direkt zu verschieben.",
+    "description": "Beschreibung",
+    "descriptionPlaceholder": "Kurze Notiz (optional)",
+    "color": "Farbe",
+    "position": "Position",
+    "top": "Oben",
+    "bottom": "Unten",
+    "time": "Zeitpunkt in Sekunden",
+    "delete": "Löschen",
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen",
+    "save": "Sichern"
+  },
+  "markerColor": {
+    "blue": "Blau",
+    "teal": "Türkis",
+    "green": "Grün",
+    "yellow": "Gelb",
+    "violet": "Violett",
+    "pink": "Pink",
+    "slate": "Schiefer"
+  }
+}

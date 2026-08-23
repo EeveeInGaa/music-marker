@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { useI18n } from "../i18n/i18n";
 import { FolderIcon, PlayIcon } from "./icons";
 
 const waveformBars = [
@@ -44,6 +45,7 @@ export function EmptyPlayer({
   mode,
   onOpenFile,
 }: EmptyPlayerProps) {
+  const { t } = useI18n();
   const isMissing = mode === "missing";
   const isRestoring = mode === "restoring";
 
@@ -51,21 +53,27 @@ export function EmptyPlayer({
     <section className="player-card empty-player" aria-labelledby="empty-player-title">
       <div className="track-heading">
         <p className="eyebrow">
-          {isRestoring ? "Lokaler Zustand" : isMissing ? "Datei fehlt" : "Lokaler Audioplayer"}
+          {t(
+            isRestoring
+              ? "empty.localState"
+              : isMissing
+                ? "empty.fileMissing"
+                : "empty.localPlayer",
+          )}
         </p>
         <h1 id="empty-player-title">
-          {isRestoring
-            ? "Letzter Titel wird geladen"
-            : isMissing
-              ? "Audiodatei nicht gefunden"
-              : "Kein Titel geöffnet"}
+          {t(
+            isRestoring ? "empty.restoringTitle" : isMissing ? "empty.missingTitle" : "empty.title",
+          )}
         </h1>
         <p className="empty-copy">
           {isRestoring
-            ? "Marker und Wiedergabeposition werden lokal wiederhergestellt."
+            ? t("empty.restoringCopy")
             : isMissing
-              ? `${missingDisplayName ?? "Der zuletzt geöffnete Titel"} wurde verschoben oder gelöscht. Ordne die Datei neu zu oder öffne oben einen anderen Titel.`
-              : "Öffne eine Audiodatei, um ihre Waveform hier anzuzeigen."}
+              ? t("empty.missingCopy", {
+                  displayName: missingDisplayName ?? t("empty.missingTrackFallback"),
+                })
+              : t("empty.copy")}
         </p>
       </div>
 
@@ -97,12 +105,12 @@ export function EmptyPlayer({
         <FolderIcon />
         <span>
           {isRestoring
-            ? "Zustand wird geladen …"
+            ? t("empty.restoringButton")
             : isSelectingFile
-              ? "Datei wird geöffnet …"
+              ? t("empty.openingButton")
               : isMissing
-                ? "Datei neu zuordnen"
-                : "Audiodatei öffnen"}
+                ? t("empty.relinkButton")
+                : t("empty.openButton")}
         </span>
       </button>
     </section>

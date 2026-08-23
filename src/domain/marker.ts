@@ -9,7 +9,7 @@ export interface Marker {
 }
 
 export interface MarkerColor {
-  label: string;
+  name: "blue" | "green" | "pink" | "slate" | "teal" | "violet" | "yellow";
   value: string;
 }
 
@@ -21,13 +21,13 @@ export interface MarkerLabelGeometry {
 }
 
 export const MARKER_COLORS: readonly MarkerColor[] = [
-  { label: "Blau", value: "#4f7dd9" },
-  { label: "Türkis", value: "#2d988b" },
-  { label: "Grün", value: "#659b4e" },
-  { label: "Gelb", value: "#c9952e" },
-  { label: "Violett", value: "#8668c7" },
-  { label: "Pink", value: "#c75e91" },
-  { label: "Schiefer", value: "#71859b" },
+  { name: "blue", value: "#4f7dd9" },
+  { name: "teal", value: "#2d988b" },
+  { name: "green", value: "#659b4e" },
+  { name: "yellow", value: "#c9952e" },
+  { name: "violet", value: "#8668c7" },
+  { name: "pink", value: "#c75e91" },
+  { name: "slate", value: "#71859b" },
 ];
 
 export const DEFAULT_MARKER_COLOR = MARKER_COLORS[0]?.value ?? "#4f7dd9";

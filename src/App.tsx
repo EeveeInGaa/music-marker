@@ -10,7 +10,12 @@ import {
 } from "./domain/library";
 import type { Marker } from "./domain/marker";
 import type { Track, TrackId } from "./domain/track";
-import { resolveAudioFile, selectAudioFile } from "./services/audioFiles";
+import { type TranslationKey, useI18n } from "./i18n/i18n";
+import {
+  resolveAudioFile,
+  SelectedAudioFileUnavailableError,
+  selectAudioFile,
+} from "./services/audioFiles";
 import { loadTrackLibrary, saveTrackLibrary } from "./services/persistence";
 
 interface ActiveTrackSession {
@@ -20,29 +25,30 @@ interface ActiveTrackSession {
 
 type RestoreStatus = "loading" | "ready";
 
-function toFileSelectionError(error: unknown): string {
-  const detail = error instanceof Error ? error.message.trim() : String(error).trim();
-  return detail.length > 0
-    ? `Die Datei konnte nicht geöffnet werden: ${detail}`
-    : "Die Datei konnte nicht geöffnet werden.";
+interface LocalizedError {
+  key: TranslationKey;
+  values?: Readonly<Record<string, string>>;
 }
 
-function toPersistenceError(error: unknown): string {
+function toLocalizedError(
+  error: unknown,
+  fallbackKey: TranslationKey,
+  detailKey: TranslationKey,
+): LocalizedError {
   const detail = error instanceof Error ? error.message.trim() : String(error).trim();
-  return detail.length > 0
-    ? `Der lokale Zustand konnte nicht gespeichert werden: ${detail}`
-    : "Der lokale Zustand konnte nicht gespeichert werden.";
+  return detail.length > 0 ? { key: detailKey, values: { detail } } : { key: fallbackKey };
 }
 
 export function App() {
+  const { t } = useI18n();
   const [library, setLibrary] = useState<TrackLibrary>(createEmptyLibrary);
   const libraryRef = useRef(library);
   const [activeSession, setActiveSession] = useState<ActiveTrackSession | null>(null);
   const [missingTrackId, setMissingTrackId] = useState<TrackId | null>(null);
   const [restoreStatus, setRestoreStatus] = useState<RestoreStatus>("loading");
   const [isSelectingFile, setIsSelectingFile] = useState(false);
-  const [operationError, setOperationError] = useState<string | null>(null);
-  const [persistenceError, setPersistenceError] = useState<string | null>(null);
+  const [operationError, setOperationError] = useState<LocalizedError | null>(null);
+  const [persistenceError, setPersistenceError] = useState<LocalizedError | null>(null);
 
   const commitLibrary = useCallback((nextLibrary: TrackLibrary) => {
     libraryRef.current = nextLibrary;
@@ -82,11 +88,7 @@ export function App() {
         setActiveSession({ sourceUrl, trackId: lastOpenedTrack.id });
       } catch (error: unknown) {
         if (isCurrent) {
-          setOperationError(
-            error instanceof Error && error.message.trim().length > 0
-              ? `Der letzte Zustand konnte nicht wiederhergestellt werden: ${error.message}`
-              : "Der letzte Zustand konnte nicht wiederhergestellt werden.",
-          );
+          setOperationError(toLocalizedError(error, "error.restore", "error.restoreWithDetail"));
         }
       } finally {
         if (isCurrent) {
@@ -115,7 +117,9 @@ export function App() {
       })
       .catch((error: unknown) => {
         if (isCurrent) {
-          setPersistenceError(toPersistenceError(error));
+          setPersistenceError(
+            toLocalizedError(error, "error.persistence", "error.persistenceWithDetail"),
+          );
         }
       });
 
@@ -129,7 +133,10 @@ export function App() {
     setOperationError(null);
 
     try {
-      const selectedFile = await selectAudioFile();
+      const selectedFile = await selectAudioFile({
+        filterName: t("fileDialog.audioFiles"),
+        title: t("fileDialog.openTrack"),
+      });
       if (selectedFile === null) {
         return;
       }
@@ -148,11 +155,15 @@ export function App() {
       setMissingTrackId(null);
       setActiveSession({ sourceUrl: selectedFile.sourceUrl, trackId: track.id });
     } catch (error: unknown) {
-      setOperationError(toFileSelectionError(error));
+      setOperationError(
+        error instanceof SelectedAudioFileUnavailableError
+          ? { key: "error.selectedFileUnavailable" }
+          : toLocalizedError(error, "error.fileOpen", "error.fileOpenWithDetail"),
+      );
     } finally {
       setIsSelectingFile(false);
     }
-  }, [commitLibrary]);
+  }, [commitLibrary, t]);
 
   const handleRelinkFile = useCallback(async () => {
     const trackId = missingTrackId;
@@ -164,7 +175,10 @@ export function App() {
     setOperationError(null);
 
     try {
-      const selectedFile = await selectAudioFile();
+      const selectedFile = await selectAudioFile({
+        filterName: t("fileDialog.audioFiles"),
+        title: t("fileDialog.openTrack"),
+      });
       if (selectedFile === null) {
         return;
       }
@@ -184,11 +198,15 @@ export function App() {
       setMissingTrackId(null);
       setActiveSession({ sourceUrl: selectedFile.sourceUrl, trackId: relinkedTrack.id });
     } catch (error: unknown) {
-      setOperationError(toFileSelectionError(error));
+      setOperationError(
+        error instanceof SelectedAudioFileUnavailableError
+          ? { key: "error.selectedFileUnavailable" }
+          : toLocalizedError(error, "error.fileOpen", "error.fileOpenWithDetail"),
+      );
     } finally {
       setIsSelectingFile(false);
     }
-  }, [commitLibrary, missingTrackId]);
+  }, [commitLibrary, missingTrackId, t]);
 
   const updateActiveTrack = useCallback(
     (update: (track: Track) => Track) => {
@@ -242,18 +260,19 @@ export function App() {
   const isRestoring = restoreStatus === "loading";
   const isBusy = isSelectingFile || isRestoring;
   const statusMessage = isRestoring
-    ? "Lokaler Zustand wird geladen"
+    ? t("status.restoring")
     : isSelectingFile
-      ? "Dateiauswahl geöffnet"
+      ? t("status.selectingFile")
       : activeTrack !== null
-        ? "Titel geladen · automatisch lokal gespeichert"
+        ? t("status.trackLoaded")
         : missingTrack !== null
-          ? "Gespeicherte Audiodatei fehlt"
-          : "Bereit · automatisch lokal gespeichert";
+          ? t("status.missingTrack")
+          : t("status.ready");
+  const visibleError = operationError ?? persistenceError;
 
   return (
     <AppShell
-      errorMessage={operationError ?? persistenceError}
+      errorMessage={visibleError === null ? null : t(visibleError.key, visibleError.values)}
       isSelectingFile={isBusy}
       onOpenFile={() => void handleOpenFile()}
       statusMessage={statusMessage}

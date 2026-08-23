@@ -7,6 +7,7 @@ import {
   roundTimeToCentiseconds,
 } from "../domain/time";
 import type { Track } from "../domain/track";
+import { type Translator, useI18n } from "../i18n/i18n";
 import { AudioWaveform, type AudioWaveformHandle } from "./AudioWaveform";
 import { PauseIcon, PlayIcon } from "./icons";
 import { MarkerEditor, type MarkerEditorMode } from "./MarkerEditor";
@@ -24,11 +25,9 @@ interface MarkerEditorState {
   mode: MarkerEditorMode;
 }
 
-function toPlaybackError(error: Error): string {
+function toPlaybackError(error: Error, t: Translator): string {
   const detail = error.message.trim();
-  return detail.length > 0
-    ? `Die Audiodatei konnte nicht geladen werden: ${detail}`
-    : "Die Audiodatei konnte nicht geladen werden.";
+  return detail.length > 0 ? t("error.playbackWithDetail", { detail }) : t("error.playback");
 }
 
 function isInteractiveKeyboardTarget(target: EventTarget | null): boolean {
@@ -46,6 +45,7 @@ export function AudioPlayer({
   sourceUrl,
   track,
 }: AudioPlayerProps) {
+  const { t } = useI18n();
   const waveformRef = useRef<AudioWaveformHandle | null>(null);
   const initialPositionRef = useRef(track.lastPlaybackPosition);
   const lastReportedPositionRef = useRef(track.lastPlaybackPosition);
@@ -54,7 +54,7 @@ export function AudioPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
-  const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const [playbackError, setPlaybackError] = useState<Error | null>(null);
   const [markerEditor, setMarkerEditor] = useState<MarkerEditorState | null>(null);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
@@ -105,7 +105,7 @@ export function AudioPlayer({
   );
 
   const handlePlaybackError = useCallback((error: Error) => {
-    setPlaybackError(toPlaybackError(error));
+    setPlaybackError(error);
     setIsPlaying(false);
     setIsReady(false);
   }, []);
@@ -203,7 +203,7 @@ export function AudioPlayer({
   return (
     <section className="player-card active-player" aria-labelledby="track-title">
       <div className="track-heading active-track-heading">
-        <p className="eyebrow">Aktiver Titel</p>
+        <p className="eyebrow">{t("player.activeTrack")}</p>
         <h1 id="track-title">{track.displayName}</h1>
       </div>
 
@@ -232,19 +232,19 @@ export function AudioPlayer({
         </div>
         <figcaption>
           {isReady
-            ? "Freie Fläche: spulen · Markerpunkt: verschieben · Rechtsklick: neuer Marker."
-            : `Waveform wird geladen · ${Math.round(loadingProgress)} %`}
+            ? t("player.waveformInstructions")
+            : t("player.loadingWaveform", { progress: Math.round(loadingProgress) })}
         </figcaption>
       </figure>
 
       {playbackError !== null ? (
         <p className="player-error" role="alert">
-          {playbackError}
+          {toPlaybackError(playbackError, t)}
         </p>
       ) : null}
 
       <p className="time-display">
-        <span className="visually-hidden">Wiedergabeposition und Gesamtdauer: </span>
+        <span className="visually-hidden">{t("player.timeDescription")}</span>
         <span>{formatPlaybackTime(currentTime)}</span>
         <span aria-hidden="true"> / </span>
         <span>{formatPlaybackTime(duration)}</span>
@@ -252,7 +252,7 @@ export function AudioPlayer({
 
       <div className="player-controls">
         <button
-          aria-label={isPlaying ? "Pause" : "Wiedergabe"}
+          aria-label={t(isPlaying ? "player.pause" : "player.play")}
           aria-pressed={isPlaying}
           aria-keyshortcuts="Space"
           className="play-button"
@@ -270,7 +270,7 @@ export function AudioPlayer({
           type="button"
         >
           <span aria-hidden="true">＋</span>
-          Marker
+          {t("player.addMarker")}
         </button>
       </div>
 

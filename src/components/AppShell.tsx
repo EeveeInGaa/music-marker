@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { useI18n } from "../i18n/i18n";
 import { FolderIcon } from "./icons";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface AppShellProps {
   children: ReactNode;
@@ -16,19 +18,24 @@ export function AppShell({
   onOpenFile,
   statusMessage,
 }: AppShellProps) {
+  const { t } = useI18n();
+
   return (
     <div className="app-shell">
       <header className="titlebar">
         <p className="app-name">Audio Marker</p>
-        <button
-          className="open-button open-button-compact"
-          disabled={isSelectingFile}
-          onClick={onOpenFile}
-          type="button"
-        >
-          <FolderIcon />
-          <span>{isSelectingFile ? "Wird geöffnet …" : "Audio öffnen"}</span>
-        </button>
+        <div className="titlebar-actions">
+          <LanguageSwitcher />
+          <button
+            className="open-button open-button-compact"
+            disabled={isSelectingFile}
+            onClick={onOpenFile}
+            type="button"
+          >
+            <FolderIcon />
+            <span>{t(isSelectingFile ? "header.opening" : "header.openAudio")}</span>
+          </button>
+        </div>
       </header>
 
       <main className="workspace">

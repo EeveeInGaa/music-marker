@@ -1,10 +1,16 @@
 import { type CSSProperties, useEffect, useRef, useState } from "react";
-import { MARKER_COLORS, type Marker, type MarkerPosition } from "../domain/marker";
+import {
+  MARKER_COLORS,
+  type Marker,
+  type MarkerColor,
+  type MarkerPosition,
+} from "../domain/marker";
 import {
   clampTimeToCentiseconds,
   formatPrecisePlaybackTime,
   roundTimeToCentiseconds,
 } from "../domain/time";
+import { type TranslationKey, useI18n } from "../i18n/i18n";
 
 export type MarkerEditorMode = "create" | "edit";
 
@@ -25,6 +31,16 @@ interface MarkerEditorStyle extends CSSProperties {
   "--editor-marker-color": string;
 }
 
+const markerColorLabelKeys: Record<MarkerColor["name"], TranslationKey> = {
+  blue: "markerColor.blue",
+  green: "markerColor.green",
+  pink: "markerColor.pink",
+  slate: "markerColor.slate",
+  teal: "markerColor.teal",
+  violet: "markerColor.violet",
+  yellow: "markerColor.yellow",
+};
+
 export function MarkerEditor({
   duration,
   initialMarker,
@@ -33,6 +49,7 @@ export function MarkerEditor({
   onDelete,
   onSave,
 }: MarkerEditorProps) {
+  const { t } = useI18n();
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const descriptionRef = useRef<HTMLTextAreaElement | null>(null);
   const [draft, setDraft] = useState({
@@ -79,14 +96,16 @@ export function MarkerEditor({
       >
         <header className="marker-form-heading">
           <div>
-            <p className="eyebrow">{mode === "create" ? "Neuer Marker" : "Marker"}</p>
+            <p className="eyebrow">
+              {t(mode === "create" ? "markerEditor.newMarker" : "markerEditor.marker")}
+            </p>
             <div className="marker-editor-time">
               <span className="marker-editor-color" aria-hidden="true" />
               <h2>{formatPrecisePlaybackTime(draft.time)}</h2>
             </div>
           </div>
           <button
-            aria-label="Marker-Editor schließen"
+            aria-label={t("markerEditor.close")}
             className="popover-close"
             onClick={onClose}
             type="button"
@@ -96,19 +115,17 @@ export function MarkerEditor({
         </header>
 
         {mode === "edit" ? (
-          <p className="marker-editor-hint">
-            Den Markerpunkt ziehen, um ihn direkt zu verschieben.
-          </p>
+          <p className="marker-editor-hint">{t("markerEditor.dragHint")}</p>
         ) : null}
 
         <div className="form-field">
-          <label htmlFor="marker-description">Beschreibung</label>
+          <label htmlFor="marker-description">{t("markerEditor.description")}</label>
           <textarea
             id="marker-description"
             maxLength={500}
             name="description"
             onChange={(event) => setDraft({ ...draft, description: event.currentTarget.value })}
-            placeholder="Kurze Notiz (optional)"
+            placeholder={t("markerEditor.descriptionPlaceholder")}
             ref={descriptionRef}
             rows={3}
             value={draft.description}
@@ -116,7 +133,7 @@ export function MarkerEditor({
         </div>
 
         <fieldset className="marker-fieldset">
-          <legend>Farbe</legend>
+          <legend>{t("markerEditor.color")}</legend>
           <div className="color-options">
             {MARKER_COLORS.map((color) => (
               <label className="color-option" key={color.value}>
@@ -132,14 +149,14 @@ export function MarkerEditor({
                   className="color-swatch"
                   style={{ backgroundColor: color.value }}
                 />
-                <span className="visually-hidden">{color.label}</span>
+                <span className="visually-hidden">{t(markerColorLabelKeys[color.name])}</span>
               </label>
             ))}
           </div>
         </fieldset>
 
         <fieldset className="marker-fieldset">
-          <legend>Position</legend>
+          <legend>{t("markerEditor.position")}</legend>
           <div className="position-options">
             {(["top", "bottom"] as const).map((position) => (
               <label className="position-option" key={position}>
@@ -155,14 +172,14 @@ export function MarkerEditor({
                   type="radio"
                   value={position}
                 />
-                <span>{position === "top" ? "Oben" : "Unten"}</span>
+                <span>{t(position === "top" ? "markerEditor.top" : "markerEditor.bottom")}</span>
               </label>
             ))}
           </div>
         </fieldset>
 
         <div className="form-field marker-time-field">
-          <label htmlFor="marker-time">Zeitpunkt in Sekunden</label>
+          <label htmlFor="marker-time">{t("markerEditor.time")}</label>
           <input
             id="marker-time"
             inputMode="decimal"
@@ -189,17 +206,17 @@ export function MarkerEditor({
               onClick={() => onDelete(initialMarker.id)}
               type="button"
             >
-              Löschen
+              {t("markerEditor.delete")}
             </button>
           ) : (
             <span />
           )}
           <div>
             <button className="secondary-button" onClick={onClose} type="button">
-              Abbrechen
+              {t("markerEditor.cancel")}
             </button>
             <button className="primary-button" type="submit">
-              {mode === "create" ? "Hinzufügen" : "Sichern"}
+              {t(mode === "create" ? "markerEditor.add" : "markerEditor.save")}
             </button>
           </div>
         </footer>

@@ -9,6 +9,7 @@ import {
 } from "react";
 import { assignMarkerLabelLanes, type Marker } from "../domain/marker";
 import { clampTime, formatPrecisePlaybackTime, horizontalPositionToTime } from "../domain/time";
+import { useI18n } from "../i18n/i18n";
 
 interface MarkerLayerProps {
   duration: number;
@@ -62,6 +63,7 @@ const MarkerItem = memo(function MarkerItem({
   onMove,
   onSelect,
 }: MarkerItemProps) {
+  const { t } = useI18n();
   const markerElementRef = useRef<HTMLDivElement | null>(null);
   const dragTimeRef = useRef<HTMLOutputElement | null>(null);
   const dragSessionRef = useRef<DragSession | null>(null);
@@ -70,7 +72,7 @@ const MarkerItem = memo(function MarkerItem({
   const suppressClickTimerRef = useRef<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const description = marker.description.trim();
-  const label = description.length > 0 ? description : "Marker";
+  const label = description.length > 0 ? description : t("marker.defaultLabel");
 
   const paintDragPosition = () => {
     animationFrameRef.current = null;
@@ -247,7 +249,10 @@ const MarkerItem = memo(function MarkerItem({
     >
       <span className="marker-line" aria-hidden="true" />
       <button
-        aria-label={`${label} bei ${formatPrecisePlaybackTime(marker.time)} bearbeiten oder verschieben`}
+        aria-label={t("marker.editOrMove", {
+          label,
+          time: formatPrecisePlaybackTime(marker.time),
+        })}
         className="marker-handle"
         onClick={(event) => {
           event.stopPropagation();
