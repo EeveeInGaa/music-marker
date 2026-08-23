@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>Audio Marker App-Symbol</title>
+  <defs>
+    <linearGradient id="background" x1="96" y1="72" x2="416" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8F5EE" />
+      <stop offset="1" stop-color="#E5E3DC" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#background)" />
+  <path d="M96 256H416" stroke="#C4C4BC" stroke-width="10" stroke-linecap="round" />
+  <g fill="#51554F">
+    <rect x="116" y="220" width="14" height="72" rx="7" />
+    <rect x="148" y="194" width="14" height="124" rx="7" />
+    <rect x="180" y="226" width="14" height="60" rx="7" />
+    <rect x="212" y="166" width="14" height="180" rx="7" />
+    <rect x="244" y="204" width="14" height="104" rx="7" />
+    <rect x="276" y="184" width="14" height="144" rx="7" />
+    <rect x="308" y="218" width="14" height="76" rx="7" />
+    <rect x="340" y="198" width="14" height="116" rx="7" />
+    <rect x="372" y="226" width="14" height="60" rx="7" />
+  </g>
+  <path d="M288 112V400" stroke="#DF7455" stroke-width="12" stroke-linecap="round" />
+  <circle cx="288" cy="112" r="22" fill="#DF7455" />
+</svg>

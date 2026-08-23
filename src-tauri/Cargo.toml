@@ -1,0 +1,17 @@
+[package]
+name = "music-marker"
+version = "0.1.0"
+description = "A local audio player for precise, descriptive markers"
+authors = ["Audio Marker contributors"]
+edition = "2021"
+
+[lib]
+name = "music_marker_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
