@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { clampTime, formatPlaybackTime, horizontalPositionToTime } from "./time.ts";
+import {
+  clampTime,
+  formatPlaybackTime,
+  formatPrecisePlaybackTime,
+  horizontalPositionToTime,
+} from "./time.ts";
 
 describe("clampTime", () => {
   test("begrenzt Positionen auf die Audiodauer", () => {
@@ -43,5 +48,18 @@ describe("formatPlaybackTime", () => {
   test("fängt negative und nicht endliche Werte ab", () => {
     assert.equal(formatPlaybackTime(-1), "00:00");
     assert.equal(formatPlaybackTime(Number.NaN), "00:00");
+  });
+});
+
+describe("formatPrecisePlaybackTime", () => {
+  test("zeigt Hundertstelsekunden und berücksichtigt Überträge", () => {
+    assert.equal(formatPrecisePlaybackTime(65.347), "01:05.35");
+    assert.equal(formatPrecisePlaybackTime(59.999), "01:00.00");
+    assert.equal(formatPrecisePlaybackTime(3661.259), "1:01:01.26");
+  });
+
+  test("fängt negative und nicht endliche Werte ab", () => {
+    assert.equal(formatPrecisePlaybackTime(-1), "00:00.00");
+    assert.equal(formatPrecisePlaybackTime(Number.NaN), "00:00.00");
   });
 });

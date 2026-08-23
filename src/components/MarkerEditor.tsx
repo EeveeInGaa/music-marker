@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { MARKER_COLORS, type Marker, type MarkerPosition } from "../domain/marker";
-import { clampTime, formatPlaybackTime } from "../domain/time";
+import { clampTime, formatPrecisePlaybackTime } from "../domain/time";
 
 export type MarkerEditorMode = "create" | "edit";
 
@@ -15,6 +15,10 @@ interface MarkerEditorProps {
 
 interface PopoverToggleEvent extends Event {
   readonly newState: "closed" | "open";
+}
+
+interface MarkerEditorStyle extends CSSProperties {
+  "--editor-marker-color": string;
 }
 
 export function MarkerEditor({
@@ -53,7 +57,12 @@ export function MarkerEditor({
   }, [onClose]);
 
   return (
-    <div className="marker-popover" popover="auto" ref={popoverRef}>
+    <div
+      className="marker-popover"
+      popover="auto"
+      ref={popoverRef}
+      style={{ "--editor-marker-color": draft.color } as MarkerEditorStyle}
+    >
       <form
         className="marker-form"
         onSubmit={(event) => {
@@ -64,7 +73,10 @@ export function MarkerEditor({
         <header className="marker-form-heading">
           <div>
             <p className="eyebrow">{mode === "create" ? "Neuer Marker" : "Marker"}</p>
-            <h2>{formatPlaybackTime(draft.time)}</h2>
+            <div className="marker-editor-time">
+              <span className="marker-editor-color" aria-hidden="true" />
+              <h2>{formatPrecisePlaybackTime(draft.time)}</h2>
+            </div>
           </div>
           <button
             aria-label="Marker-Editor schließen"
@@ -76,9 +88,16 @@ export function MarkerEditor({
           </button>
         </header>
 
-        <label className="form-field">
-          <span>Beschreibung</span>
+        {mode === "edit" ? (
+          <p className="marker-editor-hint">
+            Den Markerpunkt ziehen, um ihn direkt zu verschieben.
+          </p>
+        ) : null}
+
+        <div className="form-field">
+          <label htmlFor="marker-description">Beschreibung</label>
           <textarea
+            id="marker-description"
             maxLength={500}
             name="description"
             onChange={(event) => setDraft({ ...draft, description: event.currentTarget.value })}
@@ -87,7 +106,7 @@ export function MarkerEditor({
             rows={3}
             value={draft.description}
           />
-        </label>
+        </div>
 
         <fieldset className="marker-fieldset">
           <legend>Farbe</legend>
@@ -135,9 +154,10 @@ export function MarkerEditor({
           </div>
         </fieldset>
 
-        <label className="form-field marker-time-field">
-          <span>Zeitpunkt in Sekunden</span>
+        <div className="form-field marker-time-field">
+          <label htmlFor="marker-time">Zeitpunkt in Sekunden</label>
           <input
+            id="marker-time"
             inputMode="decimal"
             max={duration}
             min={0}
@@ -150,7 +170,7 @@ export function MarkerEditor({
             type="number"
             value={draft.time}
           />
-        </label>
+        </div>
 
         <footer className="marker-form-actions">
           {mode === "edit" ? (

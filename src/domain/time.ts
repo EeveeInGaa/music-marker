@@ -34,3 +34,20 @@ export function formatPlaybackTime(time: number): string {
 
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }
+
+export function formatPrecisePlaybackTime(time: number): string {
+  const safeTime = Number.isFinite(time) && time > 0 ? time : 0;
+  const totalCentiseconds = Math.round(safeTime * 100);
+  const wholeSeconds = Math.floor(totalCentiseconds / 100);
+  const centiseconds = totalCentiseconds % 100;
+  const hours = Math.floor(wholeSeconds / 3600);
+  const minutes = Math.floor((wholeSeconds % 3600) / 60);
+  const seconds = wholeSeconds % 60;
+  const preciseSeconds = `${String(seconds).padStart(2, "0")}.${String(centiseconds).padStart(2, "0")}`;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${preciseSeconds}`;
+  }
+
+  return `${String(minutes).padStart(2, "0")}:${preciseSeconds}`;
+}

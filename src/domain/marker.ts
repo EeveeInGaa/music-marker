@@ -28,3 +28,9 @@ export const DEFAULT_MARKER_COLOR = MARKER_COLORS[0]?.value ?? "#4f7dd9";
 export function sortMarkers(markers: readonly Marker[]): Marker[] {
   return [...markers].sort((first, second) => first.time - second.time);
 }
+
+export function moveMarker(markers: readonly Marker[], markerId: string, time: number): Marker[] {
+  return sortMarkers(
+    markers.map((marker) => (marker.id === markerId ? { ...marker, time } : marker)),
+  );
+}

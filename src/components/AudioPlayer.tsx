@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { DEFAULT_MARKER_COLOR, type Marker, sortMarkers } from "../domain/marker";
+import { DEFAULT_MARKER_COLOR, type Marker, moveMarker, sortMarkers } from "../domain/marker";
 import { clampTime, formatPlaybackTime } from "../domain/time";
 import type { Track } from "../domain/track";
 import { AudioWaveform, type AudioWaveformHandle } from "./AudioWaveform";
@@ -43,6 +43,7 @@ export function AudioPlayer({ onMarkersChange, sourceUrl, track }: AudioPlayerPr
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [markerEditor, setMarkerEditor] = useState<MarkerEditorState | null>(null);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
   const handleReady = useCallback(
     (nextDuration: number) => {
@@ -74,6 +75,7 @@ export function AudioPlayer({ onMarkersChange, sourceUrl, track }: AudioPlayerPr
   }, []);
 
   const handleAddMarkerAtTime = useCallback((time: number) => {
+    setSelectedMarkerId(null);
     setMarkerEditor({
       marker: {
         color: DEFAULT_MARKER_COLOR,
@@ -100,13 +102,32 @@ export function AudioPlayer({ onMarkersChange, sourceUrl, track }: AudioPlayerPr
         : [...track.markers, marker];
 
     onMarkersChange(sortMarkers(nextMarkers));
+    setSelectedMarkerId(marker.id);
     handleCloseMarkerEditor();
   };
 
   const handleDeleteMarker = (markerId: string) => {
     onMarkersChange(track.markers.filter((marker) => marker.id !== markerId));
+    setSelectedMarkerId(null);
     handleCloseMarkerEditor();
   };
+
+  const handleSelectMarker = useCallback((marker: Marker) => {
+    setSelectedMarkerId(marker.id);
+    setMarkerEditor({ marker, mode: "edit" });
+  }, []);
+
+  const handleMarkerDragStart = useCallback((markerId: string) => {
+    setSelectedMarkerId(markerId);
+    setMarkerEditor(null);
+  }, []);
+
+  const handleMarkerMove = useCallback(
+    (markerId: string, time: number) => {
+      onMarkersChange(moveMarker(track.markers, markerId, clampTime(time, duration)));
+    },
+    [duration, onMarkersChange, track.markers],
+  );
 
   const handleTogglePlayback = useCallback(async () => {
     try {
@@ -158,14 +179,16 @@ export function AudioPlayer({ onMarkersChange, sourceUrl, track }: AudioPlayerPr
             <MarkerLayer
               duration={duration}
               markers={track.markers}
-              onSelect={(marker) => setMarkerEditor({ marker, mode: "edit" })}
-              selectedMarkerId={markerEditor?.mode === "edit" ? markerEditor.marker.id : null}
+              onDragStart={handleMarkerDragStart}
+              onMove={handleMarkerMove}
+              onSelect={handleSelectMarker}
+              selectedMarkerId={selectedMarkerId}
             />
           ) : null}
         </div>
         <figcaption>
           {isReady
-            ? "Klicken oder ziehen zum Spulen · Rechtsklick setzt einen Marker."
+            ? "Freie Fläche: spulen · Markerpunkt: verschieben · Rechtsklick: neuer Marker."
             : `Waveform wird geladen · ${Math.round(loadingProgress)} %`}
         </figcaption>
       </figure>

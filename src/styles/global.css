@@ -466,6 +466,16 @@ h1 {
   width: 0;
   color: var(--marker-color);
   pointer-events: none;
+  transform: translateX(var(--marker-drag-offset, 0));
+}
+
+.timeline-marker.is-selected {
+  z-index: 3;
+}
+
+.timeline-marker.is-dragging {
+  z-index: 4;
+  will-change: transform;
 }
 
 .marker-line {
@@ -474,6 +484,9 @@ h1 {
   width: 1.5px;
   background: currentColor;
   opacity: 0.86;
+  transition:
+    opacity 120ms ease,
+    width 120ms ease;
 }
 
 .marker-top .marker-line {
@@ -499,8 +512,15 @@ h1 {
   color: currentColor;
   place-items: center;
   pointer-events: auto;
-  cursor: default;
+  cursor: grab;
+  touch-action: pan-y;
   transform: translateX(-50%);
+  user-select: none;
+}
+
+.timeline-marker.is-dragging .marker-handle,
+body.is-marker-dragging {
+  cursor: grabbing;
 }
 
 .marker-top .marker-handle {
@@ -525,11 +545,19 @@ h1 {
 
 .marker-handle:hover .marker-dot,
 .marker-handle:focus-visible .marker-dot,
-.timeline-marker.is-selected .marker-dot {
+.timeline-marker.is-selected .marker-dot,
+.timeline-marker.is-dragging .marker-dot {
   box-shadow:
     0 0 0 1px currentColor,
     0 0 0 0.25rem color-mix(in oklab, currentColor, transparent 76%);
   transform: scale(1.08);
+}
+
+.timeline-marker:has(.marker-handle:hover) .marker-line,
+.timeline-marker.is-selected .marker-line,
+.timeline-marker.is-dragging .marker-line {
+  width: 2px;
+  opacity: 1;
 }
 
 .marker-short-label {
@@ -572,6 +600,45 @@ h1 {
   transform: translateX(-50%) translateY(0);
 }
 
+.marker-drag-time {
+  position: absolute;
+  left: 50%;
+  width: max-content;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid color-mix(in oklab, currentColor, transparent 62%);
+  border-radius: 0.45rem;
+  background: var(--surface-solid);
+  box-shadow: 0 0.625rem 1.75rem rgba(20, 20, 18, 0.14);
+  color: var(--text);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 620;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) scale(0.96);
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease;
+}
+
+.marker-top .marker-drag-time {
+  bottom: calc(100% + 0.25rem);
+}
+
+.marker-bottom .marker-drag-time {
+  top: calc(100% + 0.25rem);
+}
+
+.timeline-marker.is-dragging .marker-short-label {
+  opacity: 0;
+}
+
+.timeline-marker.is-dragging .marker-drag-time {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
 .marker-popover {
   position: fixed;
   inset: auto 1.25rem 3.5rem auto;
@@ -585,6 +652,30 @@ h1 {
   background: var(--surface-solid);
   box-shadow: 0 1.25rem 4rem rgba(20, 20, 18, 0.2);
   color: var(--text);
+}
+
+@supports selector(:popover-open) {
+  .marker-popover {
+    opacity: 0;
+    translate: 0 0.4rem;
+    transition:
+      opacity 140ms ease,
+      translate 140ms ease,
+      display 140ms allow-discrete,
+      overlay 140ms allow-discrete;
+  }
+
+  .marker-popover:popover-open {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  @starting-style {
+    .marker-popover:popover-open {
+      opacity: 0;
+      translate: 0 0.4rem;
+    }
+  }
 }
 
 .marker-popover::backdrop {
@@ -614,6 +705,32 @@ h1 {
   font-weight: 560;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.025em;
+}
+
+.marker-editor-time {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.marker-editor-color {
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid var(--surface-solid);
+  border-radius: 50%;
+  background: var(--editor-marker-color);
+  box-shadow: 0 0 0 1px var(--editor-marker-color);
+}
+
+.marker-editor-hint {
+  margin: -0.25rem 0 0;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 0.625rem;
+  background: var(--button-surface);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.4;
 }
 
 .popover-close {
@@ -907,6 +1024,9 @@ h1 {
   .add-marker-button,
   .marker-dot,
   .marker-short-label,
+  .marker-drag-time,
+  .marker-line,
+  .marker-popover,
   .color-swatch {
     animation: none;
     transition: none;

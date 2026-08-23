@@ -7,8 +7,9 @@ eine vereinfachte Waveform wiedergegeben sowie mit farbigen, beschreibenden Mark
 werden.
 
 Marker können über den Marker-Button an der Wiedergabeposition oder per Rechtsklick direkt auf der
-Waveform angelegt werden. Die Leertaste schaltet Wiedergabe und Pause um, solange kein Formularfeld
-oder anderer interaktiver Control fokussiert ist.
+Waveform angelegt und anschließend am Markerpunkt präzise entlang der Timeline verschoben werden.
+Die Leertaste schaltet Wiedergabe und Pause um, solange kein Formularfeld oder anderer interaktiver
+Control fokussiert ist.
 
 ## Voraussetzungen
 
@@ -70,7 +71,9 @@ die ausgewählte Datei anschließend über einen temporär freigegebenen Asset-U
 
 Marker gehören als Domain-Daten zum Track. `MarkerLayer` zeichnet sie unabhängig von WaveSurfer als
 schmales Overlay, während `MarkerEditor` die Bearbeitung in einem nativen, nicht-modalen Popover
-kapselt. Freie Bereiche der Waveform bleiben dadurch für Scrubbing erreichbar.
+kapselt. Freie Bereiche der Waveform bleiben dadurch für Scrubbing erreichbar. Während eines Drags
+aktualisiert das Overlay nur die Darstellung des aktiven Markers; der Track-State wird erst beim
+Loslassen einmalig mit dem exakten, begrenzten Zeitpunkt aktualisiert.
 
 Aktuell verwaltet die App genau einen aktiven Titel. Die Auswahl wird über eine Track-ID modelliert,
 sodass später eine Liste zuletzt verwendeter Titel ergänzt werden kann, ohne Player oder UI auf
