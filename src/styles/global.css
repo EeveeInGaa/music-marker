@@ -615,6 +615,30 @@ body.is-marker-dragging {
   opacity: 1;
 }
 
+.marker-time-label {
+  position: absolute;
+  left: 0;
+  color: color-mix(in oklab, var(--marker-color), var(--text) 40%);
+  font-size: 0.5625rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 560;
+  letter-spacing: 0.015em;
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 1px 2px var(--surface-solid);
+  transform: translateX(-50%);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.marker-top .marker-time-label {
+  bottom: calc(100% + 0.0625rem);
+}
+
+.marker-bottom .marker-time-label {
+  top: calc(100% + 0.0625rem);
+}
+
 .marker-short-label {
   position: absolute;
   left: 0;
@@ -706,11 +730,11 @@ body.is-marker-dragging {
 }
 
 .marker-top .marker-short-label {
-  bottom: calc(100% + 0.375rem + var(--marker-label-offset, 0px));
+  bottom: calc(100% + 1rem + var(--marker-label-offset, 0px));
 }
 
 .marker-bottom .marker-short-label {
-  top: calc(100% + 0.375rem + var(--marker-label-offset, 0px));
+  top: calc(100% + 1rem + var(--marker-label-offset, 0px));
 }
 
 .timeline-marker:has(.marker-handle:hover) .marker-short-label,

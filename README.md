@@ -8,12 +8,13 @@ Markers can be created at the current playback position with the Marker button o
 waveform position with a right-click. They can then be moved precisely along the timeline by
 dragging the marker point. Marker times are limited to centiseconds. Short marker labels remain
 visible, can be edited directly by clicking them, and are automatically stacked above or below the
-waveform when nearby labels would overlap. Enter or moving focus away saves an inline edit; Escape
-discards it. A compact title-bar switch controls whether long labels are truncated to one line or
-shown completely across multiple lines. This display preference is stored locally. Space toggles
-playback and pause unless a form field or another interactive control is focused. A selected marker
-can be removed with Backspace or Delete under the same condition. Tracks, markers, and the last
-playback position are stored automatically and restored the next time the app starts.
+waveform when nearby labels would overlap. A small timestamp stays close to each marker point even
+when its description moves into another label lane. Enter or moving focus away saves an inline
+edit; Escape discards it. A compact title-bar switch controls whether long labels are truncated to
+one line or shown completely across multiple lines. This display preference is stored locally.
+Space toggles playback and pause unless a form field or another interactive control is focused. A
+selected marker can be removed with Backspace or Delete under the same condition. Tracks, markers,
+and the last playback position are stored automatically and restored the next time the app starts.
 
 The complete interface is available in English and German. English is the default language, and a
 compact switch in the title bar changes the language immediately. The selected language is stored

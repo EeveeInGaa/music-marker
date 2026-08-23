@@ -16,7 +16,12 @@ import {
   calculateMarkerLabelLaneLayout,
   type Marker,
 } from "../domain/marker";
-import { clampTime, formatPrecisePlaybackTime, horizontalPositionToTime } from "../domain/time";
+import {
+  clampTime,
+  formatPlaybackTime,
+  formatPrecisePlaybackTime,
+  horizontalPositionToTime,
+} from "../domain/time";
 import { useI18n } from "../i18n/i18n";
 import type { MarkerLabelDisplayMode } from "./MarkerLabelDisplaySwitcher";
 
@@ -59,6 +64,7 @@ interface DragSession {
 
 const MARKER_LABEL_BASE_HEIGHT = 22;
 const MARKER_LABEL_LANE_GAP = 4;
+const MARKER_LABEL_POINT_GAP = 16;
 
 function getMarkerStyle(marker: Marker, duration: number): MarkerStyle {
   const offset = duration > 0 ? (clampTime(marker.time, duration) / duration) * 100 : 0;
@@ -81,6 +87,7 @@ const MarkerItem = memo(function MarkerItem({
 }: MarkerItemProps) {
   const { t } = useI18n();
   const markerElementRef = useRef<HTMLDivElement | null>(null);
+  const markerTimeRef = useRef<HTMLOutputElement | null>(null);
   const dragSessionRef = useRef<DragSession | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const cancelDescriptionEditRef = useRef(false);
@@ -108,6 +115,10 @@ const MarkerItem = memo(function MarkerItem({
       "--marker-drag-offset",
       `${dragSession.lastPixel - dragSession.initialPixel}px`,
     );
+
+    if (markerTimeRef.current !== null) {
+      markerTimeRef.current.textContent = formatPlaybackTime(dragSession.lastTime);
+    }
   };
 
   const scheduleDragPaint = () => {
@@ -166,6 +177,10 @@ const MarkerItem = memo(function MarkerItem({
     document.body.classList.remove("is-marker-dragging");
     dragSessionRef.current = null;
     setIsDragging(false);
+
+    if ((!shouldCommit || !dragSession.didMove) && markerTimeRef.current !== null) {
+      markerTimeRef.current.textContent = formatPlaybackTime(marker.time);
+    }
 
     if (shouldCommit && dragSession.didMove) {
       suppressClickRef.current = true;
@@ -349,6 +364,9 @@ const MarkerItem = memo(function MarkerItem({
       >
         <span className="marker-dot" aria-hidden="true" />
       </button>
+      <output aria-hidden="true" className="marker-time-label" ref={markerTimeRef}>
+        {formatPlaybackTime(marker.time)}
+      </output>
       {labelDisplayMode === "show-all" ? (
         <span className="marker-short-label marker-label-autosize">
           <span aria-hidden="true" className="marker-label-size-mirror">
@@ -458,12 +476,14 @@ export function MarkerLayer({
 
       timelineStage.style.setProperty(
         "--marker-top-stack-space",
-        `${Math.max(layouts.top.totalHeight - MARKER_LABEL_BASE_HEIGHT, 0)}px`,
+        layouts.top.totalHeight > 0
+          ? `${Math.max(layouts.top.totalHeight - MARKER_LABEL_BASE_HEIGHT, 0) + MARKER_LABEL_POINT_GAP - MARKER_LABEL_LANE_GAP}px`
+          : "0px",
       );
       timelineStage.style.setProperty(
         "--marker-bottom-stack-space",
         layouts.bottom.totalHeight > 0
-          ? `${layouts.bottom.totalHeight + MARKER_LABEL_LANE_GAP}px`
+          ? `${layouts.bottom.totalHeight + MARKER_LABEL_POINT_GAP}px`
           : "0px",
       );
     };
